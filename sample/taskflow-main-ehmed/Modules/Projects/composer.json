@@ -1,0 +1,9 @@
+{
+    "name": "taskflow/projects",
+    "description": "",
+    "autoload": {
+        "psr-4": {
+            "Modules\\Projects\\": "app/"
+        }
+    }
+}

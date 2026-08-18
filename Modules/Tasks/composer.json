@@ -1,0 +1,9 @@
+{
+    "name": "modules/tasks",
+    "autoload": {
+        "psr-4": {
+            "Modules\\Tasks\\": "app/",
+            "Modules\\Tasks\\Database\\Factories\\": "database/factories/"
+        }
+    }
+}

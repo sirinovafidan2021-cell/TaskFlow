@@ -1,0 +1,32 @@
+# Repository Rules
+
+- This is a Laravel modular monolith using nwidart/laravel-modules.
+- Blade and vanilla JavaScript are the default UI stack.
+- Livewire is used only for approved interactive components.
+- Do not introduce React, Vue, Inertia, or SPA architecture.
+- Modules may directly use models and services from other modules during the first learning stage.
+- Direct cross-module dependencies are an accepted temporary tradeoff.
+- Do not move another module's business logic into the current module.
+- Web, API, and Livewire must share the same service layer.
+- Controllers must remain thin.
+- Services own business rules, orchestration, and transactions.
+- Repositories own Eloquent queries and persistence.
+- Repositories must not contain authorization or business decisions.
+- Use DTOs between HTTP and service layers.
+- Use Form Requests for validation.
+- Use Policies and Spatie Permission for authorization.
+- Use Sanctum for API authentication.
+- Token abilities do not replace Policies.
+- Use API Resources for JSON responses.
+- Use Spatie Activitylog for audit history.
+- Never log passwords, secrets, or tokens.
+- Do not access or edit .env.
+- Do not run Git commands without supervisor approval.
+- Do not install dependencies without approval.
+- Do not run migrations or seeders without approval.
+- Never run destructive database commands without approval.
+- Do not use a real browser or browser automation without approval.
+- Do not deploy or connect to production systems.
+- Work on one task at a time.
+- Do not modify files outside the assigned task.
+- Report changed files, checks run, and checks skipped.
