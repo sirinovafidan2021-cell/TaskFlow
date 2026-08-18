@@ -2,6 +2,7 @@
 
 namespace Modules\Projects\Http\Requests\Web;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 final class AddProjectMemberRequest extends FormRequest
@@ -12,7 +13,7 @@ final class AddProjectMemberRequest extends FormRequest
     }
 
     /**
-     * @return array<string, list<\Illuminate\Contracts\Validation\ValidationRule|array|string>>
+     * @return array<string, list<ValidationRule|array|string>>
      */
     public function rules(): array
     {

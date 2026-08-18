@@ -6,16 +6,22 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Modules\Tasks\Models\Task;
 use Modules\Tasks\Policies\TaskPolicy;
-use Modules\Tasks\Repositories\EloquentTaskRepository;
-use Modules\Tasks\Repositories\TaskRepository;
-use Modules\Tasks\Repositories\TaskCommentRepository;
-use Modules\Tasks\Repositories\EloquentTaskCommentRepository;
-use Modules\Tasks\Repositories\TaskAttachmentRepository;
 use Modules\Tasks\Repositories\EloquentTaskAttachmentRepository;
+use Modules\Tasks\Repositories\EloquentTaskCommentRepository;
+use Modules\Tasks\Repositories\EloquentTaskRepository;
+use Modules\Tasks\Repositories\TaskAttachmentRepository;
+use Modules\Tasks\Repositories\TaskCommentRepository;
+use Modules\Tasks\Repositories\TaskRepository;
 
 class TasksServiceProvider extends ServiceProvider
 {
-    public function register(): void { $this->app->bind(TaskRepository::class, EloquentTaskRepository::class); $this->app->bind(TaskCommentRepository::class, EloquentTaskCommentRepository::class); $this->app->bind(TaskAttachmentRepository::class, EloquentTaskAttachmentRepository::class); }
+    public function register(): void
+    {
+        $this->app->bind(TaskRepository::class, EloquentTaskRepository::class);
+        $this->app->bind(TaskCommentRepository::class, EloquentTaskCommentRepository::class);
+        $this->app->bind(TaskAttachmentRepository::class, EloquentTaskAttachmentRepository::class);
+    }
+
     public function boot(): void
     {
         $this->loadRoutesFrom(module_path('Tasks', 'routes/web.php'));

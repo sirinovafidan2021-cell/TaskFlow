@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Modules\Projects\Models\Project;
 use Modules\Projects\Models\ProjectMember;
 use Modules\Tasks\Models\Task;
@@ -62,15 +63,21 @@ class ActivityQueryService
     public function filterOptions(User $user): array
     {
         $activities = $this->scopedQuery($user);
+        $projectIdExpression = DB::connection()->getDriverName() === 'sqlite'
+            ? "json_extract(properties, '$.project_id')"
+            : "JSON_UNQUOTE(JSON_EXTRACT(properties, '$.project_id'))";
+        $taskIdExpression = DB::connection()->getDriverName() === 'sqlite'
+            ? "json_extract(properties, '$.task_id')"
+            : "JSON_UNQUOTE(JSON_EXTRACT(properties, '$.task_id'))";
         $projectIds = (clone $activities)
             ->whereNotNull('properties->project_id')
-            ->selectRaw("JSON_UNQUOTE(JSON_EXTRACT(properties, '$.project_id')) as activity_project_id")
+            ->selectRaw("{$projectIdExpression} as activity_project_id")
             ->pluck('activity_project_id')
             ->unique()
             ->filter();
         $taskIds = (clone $activities)
             ->whereNotNull('properties->task_id')
-            ->selectRaw("JSON_UNQUOTE(JSON_EXTRACT(properties, '$.task_id')) as activity_task_id")
+            ->selectRaw("{$taskIdExpression} as activity_task_id")
             ->pluck('activity_task_id')
             ->unique()
             ->filter();

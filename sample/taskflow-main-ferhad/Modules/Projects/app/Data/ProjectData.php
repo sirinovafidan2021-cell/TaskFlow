@@ -9,11 +9,10 @@ final readonly class ProjectData
         public ?string $description,
         public ?string $startsAt,
         public ?string $dueAt,
-    ) {
-    }
+    ) {}
 
     /**
-     * @param array{name: string, description?: string|null, starts_at?: string|null, due_at?: string|null} $attributes
+     * @param  array{name: string, description?: string|null, starts_at?: string|null, due_at?: string|null}  $attributes
      */
     public static function fromArray(array $attributes): self
     {

@@ -5,12 +5,12 @@ namespace Modules\Projects\Services;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Modules\Activity\Services\ActivityRecorder;
 use Modules\Projects\Data\ProjectData;
-use Modules\Projects\Enums\ProjectStatus;
 use Modules\Projects\Enums\ProjectMemberRole;
+use Modules\Projects\Enums\ProjectStatus;
 use Modules\Projects\Models\Project;
 use Modules\Projects\Repositories\ProjectRepository;
-use Modules\Activity\Services\ActivityRecorder;
 
 class ProjectService
 {
@@ -18,9 +18,7 @@ class ProjectService
         private readonly ProjectRepository $projects,
         private readonly ProjectMemberService $members,
         private readonly ActivityRecorder $activity,
-    )
-    {
-    }
+    ) {}
 
     public function create(User $actor, ProjectData $data): Project
     {
@@ -66,6 +64,7 @@ class ProjectService
                     'changed' => $changed,
                 ]);
             }
+
             return $project;
         });
     }
@@ -81,6 +80,7 @@ class ProjectService
 
             $project = $this->projects->save($project);
             $this->activity->record('project.archived', $actor, $project, ['project_id' => $project->id]);
+
             return $project;
         });
     }
@@ -100,6 +100,7 @@ class ProjectService
 
             $project = $this->projects->save($project);
             $this->activity->record('project.activated', $actor, $project, ['project_id' => $project->id]);
+
             return $project;
         });
     }

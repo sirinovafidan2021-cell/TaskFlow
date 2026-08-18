@@ -53,6 +53,7 @@ final class ProjectPolicy
             && $project->owner_id === $user->id
             && $project->status !== 'archived';
     }
+
     public function delete(User $user, Project $project): bool
     {
         return $this->isProjectManager($user)

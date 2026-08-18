@@ -11,8 +11,11 @@
         <testsuite name="Feature">
             <directory>tests/Feature</directory>
         </testsuite>
-        <testsuite name="Regression">
-            <directory>qa/Regression</directory>
+        <testsuite name="Modules">
+            <directory>Modules/Projects/tests</directory>
+            <directory>Modules/Tasks/tests</directory>
+            <directory>Modules/Activity/tests</directory>
+            <directory>Modules/Dashboard/tests</directory>
         </testsuite>
     </testsuites>
     <source>
@@ -26,8 +29,8 @@
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>
         <env name="CACHE_STORE" value="array"/>
-        <env name="DB_CONNECTION" value="mysql"/>
-        <env name="DB_DATABASE" value="taskflow_test"/>
+        <env name="DB_CONNECTION" value="sqlite"/>
+        <env name="DB_DATABASE" value=":memory:"/>
         <env name="DB_URL" value=""/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>

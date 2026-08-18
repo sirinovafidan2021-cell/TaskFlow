@@ -23,7 +23,7 @@ class RegisterRequest extends FormRequest
         ];
     }
 
-    public function data(): RegisterUserData
+    public function toData(): RegisterUserData
     {
         return new RegisterUserData(
             name: $this->string('name')->trim()->toString(),

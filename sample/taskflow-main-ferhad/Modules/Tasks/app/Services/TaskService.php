@@ -5,6 +5,7 @@ namespace Modules\Tasks\Services;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use LogicException;
+use Modules\Activity\Services\ActivityRecorder;
 use Modules\Projects\Enums\ProjectStatus;
 use Modules\Projects\Models\Project;
 use Modules\Projects\Services\ProjectMemberService;
@@ -13,7 +14,6 @@ use Modules\Tasks\Data\UpdateTaskData;
 use Modules\Tasks\Enums\TaskStatus;
 use Modules\Tasks\Models\Task;
 use Modules\Tasks\Repositories\TaskRepository;
-use Modules\Activity\Services\ActivityRecorder;
 
 class TaskService
 {
@@ -22,9 +22,15 @@ class TaskService
     public function create(User $actor, Project $project, CreateTaskData $data): Task
     {
         return DB::transaction(function () use ($actor, $project, $data): Task {
-            if ($project->status !== ProjectStatus::Active) throw new LogicException('Tasks can only be created in active projects.');
-            if (! $this->members->canManage($project, $actor)) throw new LogicException('The actor cannot create tasks in this project.');
-            if ($data->assigneeId && ! $this->members->isMember($project, User::query()->findOrFail($data->assigneeId))) throw new LogicException('The assignee must be a project member.');
+            if ($project->status !== ProjectStatus::Active) {
+                throw new LogicException('Tasks can only be created in active projects.');
+            }
+            if (! $this->members->canManage($project, $actor)) {
+                throw new LogicException('The actor cannot create tasks in this project.');
+            }
+            if ($data->assigneeId && ! $this->members->isMember($project, User::query()->findOrFail($data->assigneeId))) {
+                throw new LogicException('The assignee must be a project member.');
+            }
 
             $task = $this->tasks->save(new Task([
                 'project_id' => $project->id, 'creator_id' => $actor->id, 'assignee_id' => $data->assigneeId,
@@ -35,6 +41,7 @@ class TaskService
 
             $task = $this->tasks->save($task);
             $this->activity->record('task.created', $actor, $task, ['project_id' => $project->id, 'task_id' => $task->id, 'task_number' => $task->number, 'task_title' => $task->title]);
+
             return $task;
         });
     }
@@ -48,9 +55,16 @@ class TaskService
             if ($changed !== []) {
                 $this->activity->record('task.updated', $actor, $task, ['project_id' => $task->project_id, 'task_id' => $task->id, 'changed' => $changed]);
             }
+
             return $task;
         });
     }
 
-    public function delete(Task $task, User $actor): void { DB::transaction(function () use ($task, $actor): void { $this->tasks->delete($task); $this->activity->record('task.deleted', $actor, $task, ['project_id' => $task->project_id, 'task_id' => $task->id]); }); }
+    public function delete(Task $task, User $actor): void
+    {
+        DB::transaction(function () use ($task, $actor): void {
+            $this->tasks->delete($task);
+            $this->activity->record('task.deleted', $actor, $task, ['project_id' => $task->project_id, 'task_id' => $task->id]);
+        });
+    }
 }

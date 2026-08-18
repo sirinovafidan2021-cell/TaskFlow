@@ -8,6 +8,13 @@ use Modules\Tasks\Enums\TaskStatus;
 
 class ChangeTaskStatusRequest extends FormRequest
 {
-    public function authorize(): bool { return true; }
-    public function rules(): array { return ['status' => ['required', Rule::enum(TaskStatus::class)]]; }
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    public function rules(): array
+    {
+        return ['status' => ['required', Rule::enum(TaskStatus::class)]];
+    }
 }

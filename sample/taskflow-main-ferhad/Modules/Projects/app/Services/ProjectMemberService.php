@@ -6,16 +6,16 @@ use App\Enums\UserRole;
 use App\Models\User;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\DB;
 use LogicException;
+use Modules\Activity\Services\ActivityRecorder;
 use Modules\Projects\Enums\ProjectMemberRole;
 use Modules\Projects\Models\Project;
 use Modules\Projects\Models\ProjectMember;
-use Modules\Activity\Services\ActivityRecorder;
 
 class ProjectMemberService
 {
     public function __construct(private readonly ActivityRecorder $activity) {}
+
     public function addMember(Project $project, User $user, ProjectMemberRole $role, ?DateTimeInterface $joinedAt = null, ?User $actor = null): ProjectMember
     {
         if (! $project->exists || ! $user->exists) {
@@ -38,6 +38,7 @@ class ProjectMemberService
             'member_name' => $user->name ?: $user->email,
             'member_role' => $role->value,
         ]);
+
         return $membership;
     }
 

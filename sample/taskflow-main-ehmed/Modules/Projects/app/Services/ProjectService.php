@@ -2,11 +2,11 @@
 
 namespace Modules\Projects\Services;
 
+use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Modules\Projects\Data\ProjectData;
 use Modules\Projects\Models\Project;
 use Modules\Projects\Repositories\Contracts\ProjectRepositoryInterface;
-use Modules\Projects\Data\ProjectData;
-use App\Models\User;
 
 final class ProjectService
 {
@@ -14,7 +14,7 @@ final class ProjectService
         private ProjectRepositoryInterface $projects,
     ) {}
 
-    public function paginateForUser(User $user, int $perPage,): LengthAwarePaginator
+    public function paginateForUser(User $user, int $perPage): LengthAwarePaginator
     {
         return $this->projects->paginateForUser($user, $perPage);
     }

@@ -3,8 +3,8 @@
 namespace Modules\Projects\Http\Controllers;
 
 use App\Models\User;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 use Modules\Projects\Enums\ProjectMemberRole;
 use Modules\Projects\Http\Requests\StoreProjectMemberRequest;
@@ -15,9 +15,7 @@ class ProjectMemberController
 {
     use AuthorizesRequests;
 
-    public function __construct(private readonly ProjectMemberService $members)
-    {
-    }
+    public function __construct(private readonly ProjectMemberService $members) {}
 
     public function index(Project $project): View
     {

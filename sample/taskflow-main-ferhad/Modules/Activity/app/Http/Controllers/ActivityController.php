@@ -12,9 +12,7 @@ class ActivityController
 {
     use AuthorizesRequests;
 
-    public function __construct(private readonly ActivityQueryService $activity)
-    {
-    }
+    public function __construct(private readonly ActivityQueryService $activity) {}
 
     public function index(Request $request): View
     {

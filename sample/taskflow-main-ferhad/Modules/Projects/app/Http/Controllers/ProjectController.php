@@ -2,10 +2,11 @@
 
 namespace Modules\Projects\Http\Controllers;
 
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\View\View;
+use Modules\Activity\Services\ActivityQueryService;
 use Modules\Projects\Data\ProjectData;
 use Modules\Projects\Enums\ProjectStatus;
 use Modules\Projects\Http\Requests\StoreProjectRequest;
@@ -13,7 +14,6 @@ use Modules\Projects\Http\Requests\UpdateProjectRequest;
 use Modules\Projects\Models\Project;
 use Modules\Projects\Repositories\ProjectRepository;
 use Modules\Projects\Services\ProjectService;
-use Modules\Activity\Services\ActivityQueryService;
 use Spatie\Activitylog\Models\Activity;
 
 class ProjectController
@@ -24,8 +24,7 @@ class ProjectController
         private readonly ProjectRepository $projects,
         private readonly ProjectService $projectService,
         private readonly ActivityQueryService $activity,
-    ) {
-    }
+    ) {}
 
     public function index(Request $request): View
     {

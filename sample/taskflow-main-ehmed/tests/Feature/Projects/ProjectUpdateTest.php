@@ -4,8 +4,8 @@ namespace Tests\Feature\Projects;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Spatie\Permission\Models\Role;
 use Modules\Projects\Models\Project;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 final class ProjectUpdateTest extends TestCase

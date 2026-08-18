@@ -14,17 +14,24 @@ use Laravel\Sanctum\NewAccessToken;
 
 class AuthController extends Controller
 {
-    public function __construct(private readonly AuthTokenService $authTokens) {}
+    public function __construct(
+        private readonly AuthTokenService $authTokens
+    ) {}
 
     public function register(RegisterRequest $request): JsonResponse
     {
-        return $this->tokenResponse($this->authTokens->register($request->data()), 'Registration successful.', 201);
+        return $this->tokenResponse(
+            $this->authTokens->register($request->toData()),
+            'Registration successful.',
+            201
+        );
     }
 
     public function login(LoginRequest $request): JsonResponse
     {
         $request->ensureIsNotRateLimited();
-        $token = $this->authTokens->login($request->data());
+
+        $token = $this->authTokens->login($request->toData());
 
         if ($token === null) {
             $request->recordFailedAttempt();
@@ -32,14 +39,20 @@ class AuthController extends Controller
 
         $request->clearRateLimit();
 
-        return $this->tokenResponse($token, 'Login successful.');
+        return $this->tokenResponse(
+            $token,
+            'Login successful.'
+        );
     }
 
     public function logout(Request $request): JsonResponse
     {
         $this->authTokens->revokeCurrentToken($request->user());
 
-        return response()->json(['success' => true, 'message' => 'Logout successful.']);
+        return response()->json([
+            'success' => true,
+            'message' => 'Logout successful.',
+        ]);
     }
 
     public function user(Request $request): JsonResponse
@@ -60,8 +73,11 @@ class AuthController extends Controller
         ]);
     }
 
-    private function tokenResponse(NewAccessToken $token, string $message, int $status = 200): JsonResponse
-    {
+    private function tokenResponse(
+        NewAccessToken $token,
+        string $message,
+        int $status = 200
+    ): JsonResponse {
         /** @var User $user */
         $user = $token->accessToken->tokenable;
 

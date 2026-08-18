@@ -44,3 +44,14 @@ test('logout revokes the bearer token used for the request', function (): void {
 
     $this->assertDatabaseMissing('personal_access_tokens', ['id' => $token->accessToken->id]);
 });
+
+test('the API login endpoint creates a token and validates credentials', function (): void {
+    $user = User::factory()->create(['email' => 'login@example.test', 'password' => bcrypt('password')]);
+
+    $this->postJson('/api/v1/login', ['email' => $user->email, 'password' => 'password', 'device_name' => 'Pest'])
+        ->assertOk()->assertJsonPath('data.user.id', $user->id)->assertJsonStructure(['data' => ['token']]);
+
+    $this->postJson('/api/v1/login', ['email' => $user->email, 'password' => 'wrong', 'device_name' => 'Pest'])
+        ->assertUnprocessable()->assertJsonValidationErrors('email');
+    $this->postJson('/api/v1/login', [])->assertUnprocessable()->assertJsonValidationErrors(['email', 'password', 'device_name']);
+});

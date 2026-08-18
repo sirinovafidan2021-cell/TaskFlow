@@ -28,7 +28,7 @@ class LoginRequest extends FormRequest
     }
 
     /**
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws ValidationException
      */
     public function authenticate(): void
     {
@@ -46,7 +46,7 @@ class LoginRequest extends FormRequest
     }
 
     /**
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws ValidationException
      */
     protected function ensureIsNotRateLimited(): void
     {

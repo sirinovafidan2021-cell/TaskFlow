@@ -7,15 +7,15 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Modules\Projects\Data\ProjectData;
+use Modules\Projects\Http\Requests\Api\V1\AddProjectMemberApiRequest;
 use Modules\Projects\Http\Requests\Api\V1\CreateProjectApiRequest;
 use Modules\Projects\Http\Requests\Api\V1\UpdateProjectApiRequest;
+use Modules\Projects\Http\Resources\ProjectMemberResource;
 use Modules\Projects\Http\Resources\ProjectResource;
 use Modules\Projects\Models\Project;
-use Modules\Projects\Services\ProjectService;
-use Modules\Projects\Http\Resources\ProjectMemberResource;
-use Modules\Projects\Services\ProjectMemberService;
-use Modules\Projects\Http\Requests\Api\V1\AddProjectMemberApiRequest;
 use Modules\Projects\Models\ProjectMember;
+use Modules\Projects\Services\ProjectMemberService;
+use Modules\Projects\Services\ProjectService;
 
 final class ProjectController extends Controller
 {
@@ -101,7 +101,7 @@ final class ProjectController extends Controller
         return ProjectMemberResource::collection($members);
     }
 
-    public function addMember(AddProjectMemberApiRequest $request, Project $project,): ProjectMemberResource
+    public function addMember(AddProjectMemberApiRequest $request, Project $project): ProjectMemberResource
     {
         Gate::authorize('manageMembers', $project);
 
@@ -114,7 +114,7 @@ final class ProjectController extends Controller
         return new ProjectMemberResource($member);
     }
 
-    public function removeMember(Project $project, ProjectMember $projectMember,): JsonResponse
+    public function removeMember(Project $project, ProjectMember $projectMember): JsonResponse
     {
         Gate::authorize('manageMembers', $project);
 

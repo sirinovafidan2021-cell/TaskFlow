@@ -8,13 +8,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Modules\Projects\Data\ProjectData;
-use Modules\Projects\Http\Requests\Web\CreateProjectRequest;
-use Modules\Projects\Models\Project;
-use Modules\Projects\Services\ProjectService;
-use Modules\Projects\Http\Requests\Web\UpdateProjectRequest;
-use Modules\Projects\Services\ProjectMemberService;
 use Modules\Projects\Http\Requests\Web\AddProjectMemberRequest;
+use Modules\Projects\Http\Requests\Web\CreateProjectRequest;
+use Modules\Projects\Http\Requests\Web\UpdateProjectRequest;
+use Modules\Projects\Models\Project;
 use Modules\Projects\Models\ProjectMember;
+use Modules\Projects\Services\ProjectMemberService;
+use Modules\Projects\Services\ProjectService;
 
 final class ProjectController extends Controller
 {
@@ -77,7 +77,7 @@ final class ProjectController extends Controller
         return view('projects::projects.edit', compact('project'));
     }
 
-    public function update(UpdateProjectRequest $request, Project $project,): RedirectResponse
+    public function update(UpdateProjectRequest $request, Project $project): RedirectResponse
     {
         Gate::authorize('update', $project);
 
@@ -121,7 +121,7 @@ final class ProjectController extends Controller
         ));
     }
 
-    public function addMember(AddProjectMemberRequest $request,  Project $project,): RedirectResponse
+    public function addMember(AddProjectMemberRequest $request, Project $project): RedirectResponse
     {
         Gate::authorize('manageMembers', $project);
 
@@ -136,7 +136,7 @@ final class ProjectController extends Controller
             ->with('success', 'Member added successfully.');
     }
 
-    public function removeMember(Project $project, ProjectMember $projectMember,): RedirectResponse
+    public function removeMember(Project $project, ProjectMember $projectMember): RedirectResponse
     {
         Gate::authorize('manageMembers', $project);
 

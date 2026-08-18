@@ -2,14 +2,14 @@
 
 namespace Modules\Projects\Repositories\Eloquent;
 
+use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Modules\Projects\Models\Project;
 use Modules\Projects\Repositories\Contracts\ProjectRepositoryInterface;
-use App\Models\User;
 
 final class EloquentProjectRepository implements ProjectRepositoryInterface
 {
-    public function paginateForUser(User $user, int $perPage,): LengthAwarePaginator
+    public function paginateForUser(User $user, int $perPage): LengthAwarePaginator
     {
         $query = Project::query();
 
@@ -32,7 +32,7 @@ final class EloquentProjectRepository implements ProjectRepositoryInterface
     }
 
     /**
-     * @param array<string, mixed> $attributes
+     * @param  array<string, mixed>  $attributes
      */
     public function create(array $attributes): Project
     {
@@ -40,7 +40,7 @@ final class EloquentProjectRepository implements ProjectRepositoryInterface
     }
 
     /**
-     * @param array<string, mixed> $attributes
+     * @param  array<string, mixed>  $attributes
      */
     public function update(Project $project, array $attributes): Project
     {

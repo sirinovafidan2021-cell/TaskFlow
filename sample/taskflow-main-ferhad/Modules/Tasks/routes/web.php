@@ -1,9 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Tasks\Http\Controllers\TaskController;
-use Modules\Tasks\Http\Controllers\TaskCommentController;
 use Modules\Tasks\Http\Controllers\TaskAttachmentController;
+use Modules\Tasks\Http\Controllers\TaskCommentController;
+use Modules\Tasks\Http\Controllers\TaskController;
 
 Route::middleware(['web', 'auth'])->group(function (): void {
     Route::get('/tasks', [TaskController::class, 'index'])->name('tasks.index');

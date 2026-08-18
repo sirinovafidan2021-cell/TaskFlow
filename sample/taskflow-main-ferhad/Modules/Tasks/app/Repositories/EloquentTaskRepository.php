@@ -2,14 +2,14 @@
 
 namespace Modules\Tasks\Repositories;
 
+use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
+use Modules\Projects\Models\Project;
 use Modules\Tasks\Data\TaskFiltersData;
 use Modules\Tasks\Enums\TaskPriority;
 use Modules\Tasks\Enums\TaskStatus;
 use Modules\Tasks\Models\Task;
-use Modules\Projects\Models\Project;
-use App\Models\User;
-use Illuminate\Support\Collection;
 
 class EloquentTaskRepository implements TaskRepository
 {
@@ -29,8 +29,25 @@ class EloquentTaskRepository implements TaskRepository
             ->orderBy($sort, $direction)->paginate(12)->withQueryString();
     }
 
-    public function save(Task $task): Task { $task->save(); return $task; }
-    public function delete(Task $task): void { $task->delete(); }
-    public function filterProjects(): Collection { return Project::query()->orderBy('name')->get(); }
-    public function filterUsers(): Collection { return User::query()->orderBy('name')->get(); }
+    public function save(Task $task): Task
+    {
+        $task->save();
+
+        return $task;
+    }
+
+    public function delete(Task $task): void
+    {
+        $task->delete();
+    }
+
+    public function filterProjects(): Collection
+    {
+        return Project::query()->orderBy('name')->get();
+    }
+
+    public function filterUsers(): Collection
+    {
+        return User::query()->orderBy('name')->get();
+    }
 }

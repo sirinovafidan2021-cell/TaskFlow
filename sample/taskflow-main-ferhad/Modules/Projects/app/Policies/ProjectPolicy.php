@@ -5,6 +5,7 @@ namespace Modules\Projects\Policies;
 use App\Enums\PermissionName;
 use App\Enums\UserRole;
 use App\Models\User;
+use Modules\Projects\Enums\ProjectMemberRole;
 use Modules\Projects\Models\Project;
 
 class ProjectPolicy
@@ -46,7 +47,7 @@ class ProjectPolicy
                 || $project->owner_id === $user->id
                 || $project->memberships()
                     ->where('user_id', $user->id)
-                    ->where('member_role', \Modules\Projects\Enums\ProjectMemberRole::Manager->value)
+                    ->where('member_role', ProjectMemberRole::Manager->value)
                     ->exists());
     }
 }

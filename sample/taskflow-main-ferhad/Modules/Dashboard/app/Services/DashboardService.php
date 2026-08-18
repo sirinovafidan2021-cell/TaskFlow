@@ -15,9 +15,7 @@ use Modules\Tasks\Models\Task;
 
 class DashboardService
 {
-    public function __construct(private readonly ActivityQueryService $activity)
-    {
-    }
+    public function __construct(private readonly ActivityQueryService $activity) {}
 
     public function summary(User $user): array
     {

@@ -1,5 +1,8 @@
 <?php
 
+use App\Enums\UserRole;
+use App\Models\User;
+use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -16,7 +19,13 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
-    ->in('Feature');
+    ->in(
+        'Feature',
+        '../Modules/Projects/tests/Feature',
+        '../Modules/Tasks/tests/Feature',
+        '../Modules/Activity/tests/Feature',
+        '../Modules/Dashboard/tests/Feature',
+    );
 
 /*
 |--------------------------------------------------------------------------
@@ -47,4 +56,14 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+function userWithRole(UserRole $role): User
+{
+    app(RolePermissionSeeder::class)->run();
+
+    $user = User::factory()->create();
+    $user->assignRole($role->value);
+
+    return $user;
 }

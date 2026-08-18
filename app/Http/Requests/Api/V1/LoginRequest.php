@@ -24,7 +24,7 @@ class LoginRequest extends FormRequest
         ];
     }
 
-    public function data(): LoginData
+    public function toData(): LoginData
     {
         return new LoginData(
             email: $this->string('email')->lower()->toString(),
@@ -40,7 +40,11 @@ class LoginRequest extends FormRequest
         }
 
         throw ValidationException::withMessages([
-            'email' => ['Too many login attempts. Please try again in '.RateLimiter::availableIn($this->throttleKey()).' seconds.'],
+            'email' => [
+                'Too many login attempts. Please try again in '
+                .RateLimiter::availableIn($this->throttleKey())
+                .' seconds.',
+            ],
         ]);
     }
 
@@ -60,6 +64,8 @@ class LoginRequest extends FormRequest
 
     private function throttleKey(): string
     {
-        return Str::transliterate(Str::lower((string) $this->input('email')).'|'.$this->ip());
+        return Str::transliterate(
+            Str::lower((string) $this->input('email')).'|'.$this->ip()
+        );
     }
 }

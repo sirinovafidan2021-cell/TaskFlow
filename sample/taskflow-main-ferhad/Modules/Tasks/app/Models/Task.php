@@ -32,9 +32,28 @@ class Task extends Model
         ];
     }
 
-    public function project(): BelongsTo { return $this->belongsTo(Project::class); }
-    public function creator(): BelongsTo { return $this->belongsTo(User::class, 'creator_id'); }
-    public function assignee(): BelongsTo { return $this->belongsTo(User::class, 'assignee_id'); }
-    public function comments(): HasMany { return $this->hasMany(TaskComment::class); }
-    public function attachments(): HasMany { return $this->hasMany(TaskAttachment::class); }
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class);
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'creator_id');
+    }
+
+    public function assignee(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assignee_id');
+    }
+
+    public function comments(): HasMany
+    {
+        return $this->hasMany(TaskComment::class);
+    }
+
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(TaskAttachment::class);
+    }
 }

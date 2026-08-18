@@ -11,7 +11,7 @@ final readonly class CreatePersonalAccessTokenData
     ) {}
 
     /**
-     * @param array{email: string, password: string, device_name: string} $validated
+     * @param  array{email: string, password: string, device_name: string}  $validated
      */
     public static function fromValidated(array $validated): self
     {

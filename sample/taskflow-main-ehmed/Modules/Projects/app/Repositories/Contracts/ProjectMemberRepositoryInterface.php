@@ -15,7 +15,7 @@ interface ProjectMemberRepositoryInterface
     public function findByProjectAndUser(int $projectId, int $userId): ?ProjectMember;
 
     /**
-     * @param array<string, mixed> $attributes
+     * @param  array<string, mixed>  $attributes
      */
     public function create(array $attributes): ProjectMember;
 
