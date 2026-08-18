@@ -2,8 +2,11 @@
 
 namespace Modules\Projects\Services;
 
+use App\Enums\UserRole;
 use App\Models\User;
+use App\Notifications\NewProjectCreatedNotification;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use Modules\Activity\Services\ActivityRecorder;
 use Modules\Projects\Data\ProjectData;
@@ -22,7 +25,7 @@ class ProjectService
 
     public function create(User $actor, ProjectData $data): Project
     {
-        return DB::transaction(function () use ($actor, $data): Project {
+        $project = DB::transaction(function () use ($actor, $data): Project {
             $project = new Project([
                 'name' => $data->name,
                 'slug' => $this->uniqueSlug($data->name),
@@ -39,6 +42,16 @@ class ProjectService
 
             return $project;
         });
+
+        // Both web and API creation use this service. Dispatch only after the
+        // transaction has committed, so a rolled-back project is never announced.
+        if ($actor->hasRole(UserRole::Admin->value)) {
+            User::query()->eachById(function ($users) use ($project, $actor): void {
+                Notification::send($users, new NewProjectCreatedNotification($project, $actor));
+            });
+        }
+
+        return $project;
     }
 
     public function update(Project $project, ProjectData $data, User $actor): Project

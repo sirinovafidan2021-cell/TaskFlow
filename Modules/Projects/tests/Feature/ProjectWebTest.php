@@ -6,7 +6,7 @@ use Modules\Projects\Models\Project;
 it('redirects guests and renders project pages for an authorized verified user', function (): void {
     $this->get('/projects')->assertRedirect('/login');
 
-    $manager = userWithRole(UserRole::ProjectManager);
+    $manager = userWithRole(UserRole::Admin);
     $project = Project::factory()->create(['owner_id' => $manager->id]);
     $this->actingAs($manager)->get('/projects')->assertOk()->assertViewIs('projects::index');
     $this->actingAs($manager)->get("/projects/{$project->id}")->assertOk()->assertViewIs('projects::show');

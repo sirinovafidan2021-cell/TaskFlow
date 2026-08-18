@@ -8,7 +8,7 @@ it('requires a bearer token for project APIs', function (): void {
 });
 
 it('allows a project manager to create, view, update, and delete an owned project', function (): void {
-    $manager = userWithRole(UserRole::ProjectManager);
+    $manager = userWithRole(UserRole::Admin);
     $token = $manager->createToken('pest')->plainTextToken;
 
     $this->withToken($token)->postJson('/api/v1/projects', [

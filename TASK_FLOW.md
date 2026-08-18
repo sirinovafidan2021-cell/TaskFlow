@@ -1,5 +1,13 @@
 # Test Codebase
 
+## New Project Notification
+
+When an authorized **Admin** creates a project through either the web or API flow, the shared `ProjectService` first commits the project transaction and then dispatches `NewProjectCreatedNotification` to every registered user with an email address. No notification preferences or unsubscribe mechanism currently exists, so verified and unverified registered users are both included.
+
+The Laravel notification uses the mail channel and contains the recipient greeting, project name, optional description, creator, creation date, and a project link. It implements `ShouldQueue`, so each email is queued rather than sent during the project-creation request. The database queue is the configured default (`QUEUE_CONNECTION=database`); run a worker with `php artisan queue:work`.
+
+Notifications are not dispatched for validation or authorization failures, transaction failures, or projects created by non-admin actors. The notification dispatch lives only in `ProjectService`, which prevents duplicate web/API notifications. Focused notification tests use `Notification::fake()`, so they never send real email.
+
 TaskFlow uses Pest with `RefreshDatabase` for feature tests. The `phpunit.xml` Modules suite discovers tests in Projects, Tasks, Activity, and Dashboard, while `tests/Pest.php` binds each feature-test location to Laravel's application test case. The suite runs against an in-memory SQLite database, so it does not use developer database records.
 
 ## Authentication Tests
