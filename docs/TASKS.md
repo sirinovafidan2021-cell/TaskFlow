@@ -23,7 +23,7 @@ Rules:
 
 ## Active task
 
-`none` — the canonical documentation baseline is verified; no code implementation task has started.
+`TF-001` — reproducible dependency/runtime baseline; started 2026-08-25. Node.js runtime is not available on the current host, so locked npm installation validation and Vite build verification are pending.
 
 ## Implementation status
 
@@ -48,7 +48,7 @@ Rules:
 | ID | Status | Depends on | Evidence |
 |---|---|---|---|
 | TF-000 | verified | none | 2026-08-24: 2 root + 15 `docs` Markdown files verified in the target repository; 51 plan IDs have dependency/action/acceptance and matching tracker dependencies; broken links and legacy files absent; product/API/checklist/decision consistency audit passed |
-| TF-001 | pending | TF-000 | — |
+| TF-001 | in_progress | TF-000 | 2026-08-25: PHP 8.4.24 and Composer 2.9.5 satisfy the locked PHP dependency platform checks; Composer manifest/lock validation and locked-install simulation pass. `vendor/` (112 MB) and `node_modules/` (88 MB) exist. The host has no `node`, `nodejs`, `npm`, or `npx` executable, although locked Vite 8.2.1 requires Node `^20.19.0 || >=22.12.0`; npm lock/install and frontend build are blocked pending provision of that runtime. An unexpected `package-lock.json` modification was also detected during this task and is preserved for owner review. See the 2026-08-25 evidence log. |
 | TF-002 | pending | TF-000 | — |
 
 ### Phase 1
@@ -162,6 +162,32 @@ Result:
 Files/areas reviewed:
 Remaining risk or blocker:
 Reviewer:
+```
+
+## Evidence log
+
+```text
+Date/time: 2026-08-25 15:00:05 +04
+Task ID: TF-001
+Commit/worktree state (if Git is authorized): Not inspected; Git operations are not authorized for this task.
+Commands/checks:
+- `php --version`, `composer --version`, and command-path checks for Node/npm.
+- `composer validate --no-check-publish`.
+- `composer check-platform-reqs --no-dev`.
+- `composer show --direct --format=json`.
+- `composer install --dry-run --no-interaction --no-scripts`.
+- Static inspection of `composer.json`, `composer.lock`, `package.json`, `package-lock.json`, Vite/package engine metadata, module manifests/providers, route files, migration files, PHPUnit/Pest configuration, frontend inputs, and test directories.
+- PHP syntax check across `app`, `routes`, `database`, `Modules`, `tests`, and `qa`.
+Result:
+- PHP 8.4.24, Composer 2.9.5, and the installed locked Composer packages are valid; every non-dev Composer platform requirement passed. `composer validate` passed and the locked-install simulation reported nothing to install, update, or remove.
+- Composer lock metadata: content hash `a2eda8d80a60d7377c48d62487408772`, 83 production and 51 development packages. `composer.lock` SHA-256: `c77679ec23d9b7559bffbdbcd33c8dc3ac837976ad17ce24dbcc960ac940f19b`.
+- `package-lock.json` v3 matches the root `devDependencies` and `optionalDependencies`; it contains 137 package entries. Locked frontend versions include Vite 8.2.1, Tailwind CSS 4.3.3, `@tailwindcss/vite` 4.3.3, Laravel Vite Plugin 3.2.0, and concurrently 10.0.4. It was initially observed as SHA-256 `a81bf3540ffe73b82623fb5ac302fda058878458557b1e6eeb39cc5a03e84b46` (timestamp 2026-08-21 16:49:20 +04), but was modified at 2026-08-25 15:00:22 +04 during this task without a command that targets it; the preserved current SHA-256 is `725c2bcffac18f3224db60ed4b6ed8d935213f4a4990d779d9c4244a86dd0db6`.
+- `vendor/` (112 MB) and `node_modules/` (88 MB) are present. No `node`, `nodejs`, `npm`, or `npx` executable is available. Vite and Laravel Vite Plugin require Node `^20.19.0 || >=22.12.0`, so `npm ci --dry-run` and `npm run build` could not be run.
+- Enabled modules are Projects, Tasks, Activity, and Dashboard. Static inventory: 6 host and 6 module migrations; 9 host-Web, 25 module-Web, and 32 host-API action declarations; no module API route file yet (TF-201 owns that migration). Vite inputs are `resources/css/app.css` and `resources/js/app.js`. Test discovery is presently inherited/MySQL-specific: two root PHP test files, eight module test placeholders, and 35 `test(...)` blocks in `qa/Regression/TaskFlowRegression.pest`; TF-100 owns portable discovery.
+- PHP syntax check passed. No migrations, seeders, dependency install/update, test database operation, Git command, or Playwright run was performed.
+Files/areas reviewed: composer/package manifests and locks; installed dependency directories; `vite.config.js`; `modules_statuses.json`; module manifests/providers/routes/migrations; host routes/migrations; `phpunit.xml`; `tests/Pest.php`; root/module/qa test paths; README setup guidance.
+Remaining risk or blocker: Provide a compatible Node.js runtime on this host (or explicitly authorize its installation), and identify/approve or revert the unexpected `package-lock.json` change outside this task before it can be certified as lock-file-drift-free. Then run `node --version`, `npm ci --dry-run --ignore-scripts`, and `npm run build`, recheck lock hashes, and complete TF-001 verification. The current test configuration intentionally remains unexecuted because it targets the inherited `taskflow_test` MySQL database; TF-100 owns safe portable test setup.
+Reviewer: Codex
 ```
 
 ## Known pre-implementation unknowns

@@ -16,6 +16,30 @@ The target product is deliberately smaller than Jira. It provides projects, proj
 - Pest for unit, feature, API, security, and Livewire tests
 - Playwright for a small set of critical browser journeys
 
+## Reproducible local setup baseline
+
+The baseline is intentionally lock-file driven. Do not use `composer update`,
+`npm install`, or the Composer `setup` script to make a clean checkout work:
+the latter also runs a migration and therefore requires an identified database
+and separate authorization.
+
+Prerequisites are PHP 8.3 or newer, Composer 2, and Node.js
+`^20.19.0 || >=22.12.0` (the range locked by Vite 8). A clean checkout uses
+the existing locks only:
+
+```bash
+composer install --no-interaction --prefer-dist
+npm ci --ignore-scripts
+npm run build
+```
+
+Create the local environment file from `.env.example` only when it does not
+already exist, then generate an application key. Database migration and seed
+commands are deliberately separate from setup and must be run only against an
+identified local/test database with the relevant task approval. The portable
+test database configuration is introduced by TF-100; before then, do not treat
+the inherited MySQL-specific test configuration as a clean-checkout test gate.
+
 ## Modules
 
 The target modular monolith contains:
