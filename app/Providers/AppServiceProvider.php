@@ -1,0 +1,37 @@
+<?php
+
+namespace App\Providers;
+
+use App\Enums\PermissionName;
+use App\Enums\UserRole;
+use App\Models\User;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\ServiceProvider;
+
+class AppServiceProvider extends ServiceProvider
+{
+    /**
+     * Register any application services.
+     */
+    public function register(): void
+    {
+        //
+    }
+
+    /**
+     * Bootstrap any application services.
+     */
+    public function boot(): void
+    {
+        RateLimiter::for('taskflow-api', function (Request $request): Limit {
+            return Limit::perMinute(120)->by($request->user()?->id ?: $request->ip());
+        });
+
+        Gate::define('viewDashboard', fn (User $user): bool => $user->hasPermissionTo(PermissionName::DashboardView->value));
+        Gate::define('manageUsers', fn (User $user): bool => $user->hasRole(UserRole::Admin->value)
+            && $user->hasPermissionTo(PermissionName::UserRolesManage->value));
+    }
+}
