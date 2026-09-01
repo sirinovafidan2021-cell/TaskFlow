@@ -2,7 +2,7 @@
 
 namespace Modules\Tasks\Http\Controllers;
 
-use App\Models\User;
+use App\Repositories\UserRepository;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -30,7 +30,7 @@ class TaskController
 {
     use AuthorizesRequests;
 
-    public function __construct(private readonly TaskRepository $tasks, private readonly TaskService $taskService, private readonly TaskAssignmentService $assignments, private readonly TaskStatusService $statuses, private readonly ProjectMemberService $members, private readonly ActivityQueryService $activity) {}
+    public function __construct(private readonly TaskRepository $tasks, private readonly TaskService $taskService, private readonly TaskAssignmentService $assignments, private readonly TaskStatusService $statuses, private readonly ProjectMemberService $members, private readonly ActivityQueryService $activity, private readonly UserRepository $users) {}
 
     public function index(Request $request): View
     {
@@ -88,7 +88,7 @@ class TaskController
     public function assign(AssignTaskRequest $request, Task $task): RedirectResponse
     {
         $this->authorize('assign', $task);
-        $this->assignments->assign($task->load('project'), $request->filled('assignee_id') ? User::query()->findOrFail($request->integer('assignee_id')) : null, $request->user());
+        $this->assignments->assign($task->load('project'), $request->filled('assignee_id') ? $this->users->findOrFail($request->integer('assignee_id')) : null, $request->user());
 
         return back()->with('success', 'Task assignment updated.');
     }

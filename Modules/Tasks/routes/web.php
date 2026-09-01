@@ -5,7 +5,7 @@ use Modules\Tasks\Http\Controllers\TaskAttachmentController;
 use Modules\Tasks\Http\Controllers\TaskCommentController;
 use Modules\Tasks\Http\Controllers\TaskController;
 
-Route::middleware(['web', 'auth'])->group(function (): void {
+Route::middleware(['web', 'auth', 'active-user'])->group(function (): void {
     Route::get('/tasks', [TaskController::class, 'index'])->name('tasks.index');
     Route::get('/projects/{project}/tasks/create', [TaskController::class, 'create'])->name('tasks.create');
     Route::post('/projects/{project}/tasks', [TaskController::class, 'store'])->name('tasks.store');

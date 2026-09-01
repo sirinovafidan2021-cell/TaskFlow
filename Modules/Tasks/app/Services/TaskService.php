@@ -8,6 +8,7 @@ use LogicException;
 use Modules\Activity\Services\ActivityRecorder;
 use Modules\Projects\Enums\ProjectStatus;
 use Modules\Projects\Models\Project;
+use Modules\Projects\Services\ProjectService;
 use Modules\Projects\Services\ProjectMemberService;
 use Modules\Tasks\Data\CreateTaskData;
 use Modules\Tasks\Data\UpdateTaskData;
@@ -17,7 +18,7 @@ use Modules\Tasks\Repositories\TaskRepository;
 
 class TaskService
 {
-    public function __construct(private readonly TaskRepository $tasks, private readonly ProjectMemberService $members, private readonly ActivityRecorder $activity) {}
+    public function __construct(private readonly TaskRepository $tasks, private readonly ProjectMemberService $members, private readonly ActivityRecorder $activity, private readonly ProjectService $projects) {}
 
     public function create(User $actor, Project $project, CreateTaskData $data): Task
     {
@@ -33,13 +34,11 @@ class TaskService
             }
 
             $task = $this->tasks->save(new Task([
+                'number' => $this->projects->allocateIssueNumber($project),
                 'project_id' => $project->id, 'creator_id' => $actor->id, 'assignee_id' => $data->assigneeId,
                 'title' => $data->title, 'description' => $data->description, 'status' => TaskStatus::Todo,
                 'priority' => $data->priority, 'due_at' => $data->dueAt,
             ]));
-            $task->number = 'TSK-'.str_pad((string) $task->id, 6, '0', STR_PAD_LEFT);
-
-            $task = $this->tasks->save($task);
             $this->activity->record('task.created', $actor, $task, ['project_id' => $project->id, 'task_id' => $task->id, 'task_number' => $task->number, 'task_title' => $task->title]);
 
             return $task;

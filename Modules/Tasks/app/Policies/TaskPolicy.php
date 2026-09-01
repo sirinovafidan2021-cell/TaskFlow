@@ -20,16 +20,14 @@ class TaskPolicy
         return $user->hasPermissionTo(PermissionName::TasksView->value);
     }
 
-    public function create(User $user, Project $project, bool $allowInactive = false): bool
+    public function create(User $user, Project $project): bool
     {
-        return $user->hasPermissionTo(PermissionName::TasksCreate->value)
-            && $this->members->canManage($project, $user)
-            && ($allowInactive || $project->status === ProjectStatus::Active);
+        return $project->status === ProjectStatus::Active && ($this->members->canManage($project,$user) || $this->members->isMember($project,$user));
     }
 
     public function view(User $user, Task $task): bool
     {
-        return $user->hasPermissionTo(PermissionName::TasksView->value) && ($this->members->canManage($task->project, $user) || $task->assignee_id === $user->id);
+        return $this->members->canManage($task->project, $user) || $this->members->isMember($task->project, $user);
     }
 
     public function update(User $user, Task $task): bool

@@ -4,6 +4,7 @@ namespace Modules\Tasks\Models;
 
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -15,6 +16,11 @@ use Modules\Tasks\Enums\TaskStatus;
 class Task extends Model
 {
     use HasFactory, SoftDeletes;
+
+    protected static function newFactory(): Factory
+    {
+        return \Database\Factories\TaskFactory::new();
+    }
 
     protected $fillable = [
         'number', 'project_id', 'creator_id', 'assignee_id', 'title', 'description',

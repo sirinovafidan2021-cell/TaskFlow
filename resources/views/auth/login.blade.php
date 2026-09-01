@@ -1,12 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign in | TaskFlow</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-</head>
-<body class="min-h-screen bg-slate-950 text-slate-900 antialiased">
+@extends('layouts.guest')
+
+@section('title', 'Sign in')
+
+@section('content')
     <main class="relative isolate grid min-h-screen overflow-hidden lg:grid-cols-[minmax(0,1.15fr)_minmax(420px,0.85fr)]">
         <div class="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_18%_18%,rgba(99,102,241,0.22),transparent_30%),radial-gradient(circle_at_72%_78%,rgba(14,165,233,0.12),transparent_28%),linear-gradient(135deg,#020617_0%,#0f172a_55%,#172554_100%)]"></div>
 
@@ -91,5 +87,4 @@
             </div>
         </section>
     </main>
-</body>
-</html>
+@endsection

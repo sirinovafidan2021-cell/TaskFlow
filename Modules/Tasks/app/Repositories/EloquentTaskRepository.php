@@ -76,6 +76,14 @@ class EloquentTaskRepository implements TaskRepository
         $task->delete();
     }
 
+    public function unassignOpenWorkFor(User $user): int
+    {
+        return Task::query()
+            ->where('assignee_id', $user->id)
+            ->whereNotIn('status', [TaskStatus::Done->value, TaskStatus::Cancelled->value])
+            ->update(['assignee_id' => null, 'updated_at' => now()]);
+    }
+
     public function filterProjectsFor(User $user): Collection
     {
         return Project::query()

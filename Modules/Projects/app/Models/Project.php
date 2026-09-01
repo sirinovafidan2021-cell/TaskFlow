@@ -4,6 +4,7 @@ namespace Modules\Projects\Models;
 
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -15,8 +16,14 @@ class Project extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected static function newFactory(): Factory
+    {
+        return \Database\Factories\ProjectFactory::new();
+    }
+
     protected $fillable = [
         'name',
+        'key',
         'slug',
         'description',
         'status',

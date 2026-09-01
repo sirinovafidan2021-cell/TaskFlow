@@ -34,7 +34,11 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        if (! Auth::attempt([
+            'email' => Str::lower(trim((string) $this->input('email'))),
+            'password' => $this->input('password'),
+            'status' => \App\Enums\AccountStatus::Active->value,
+        ], $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey(), 60);
 
             throw ValidationException::withMessages([
@@ -55,14 +59,12 @@ class LoginRequest extends FormRequest
         }
 
         throw ValidationException::withMessages([
-            'email' => __('Too many login attempts. Please try again in :seconds seconds.', [
-                'seconds' => RateLimiter::availableIn($this->throttleKey()),
-            ]),
+                'email' => __('Unable to sign in. Please try again later.'),
         ]);
     }
 
     protected function throttleKey(): string
     {
-        return Str::transliterate(Str::lower((string) $this->input('email')).'|'.$this->ip());
+        return Str::transliterate(Str::lower(trim((string) $this->input('email'))).'|'.$this->ip());
     }
 }

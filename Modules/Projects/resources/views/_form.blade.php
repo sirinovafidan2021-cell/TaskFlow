@@ -14,6 +14,14 @@
     </div>
 
     <div>
+        <label for="key" class="mb-2 block text-sm font-semibold text-slate-800">Project key</label>
+        <input id="key" name="key" type="text" value="{{ old('key', $project->key ?? '') }}" required maxlength="10" pattern="[A-Z][A-Z0-9]{1,9}" @disabled(isset($project) && $project->next_issue_number > 1) class="block w-full rounded-xl border border-slate-300 bg-white px-4 py-3 font-mono uppercase text-slate-900 @error('key') border-rose-400 @enderror">
+        <p class="mt-2 text-xs text-slate-500">2–10 böyük hərf/rəqəm. İlk issue yarandıqdan sonra dəyişdirilə bilməz.</p>
+        @if (isset($project) && $project->next_issue_number > 1)<input type="hidden" name="key" value="{{ $project->key }}">@endif
+        @error('key')<p class="mt-2 text-sm font-medium text-rose-600">{{ $message }}</p>@enderror
+    </div>
+
+    <div>
         <label for="description" class="mb-2 block text-sm font-semibold text-slate-800">Description <span class="font-normal text-slate-400">(optional)</span></label>
         <textarea id="description" name="description" rows="6" class="block w-full resize-y rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/15 @error('description') border-rose-400 @enderror">{{ old('description', $project->description ?? '') }}</textarea>
         @error('description')<p class="mt-2 text-sm font-medium text-rose-600">{{ $message }}</p>@enderror

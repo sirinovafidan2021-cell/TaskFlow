@@ -9,7 +9,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('project_members', function (Blueprint $table): void {
-            $table->id()->first();
             $table->string('member_role')->default('member')->after('user_id');
             $table->timestamp('joined_at')->nullable()->after('member_role');
         });
@@ -19,7 +18,6 @@ return new class extends Migration
     {
         Schema::table('project_members', function (Blueprint $table): void {
             $table->dropColumn(['joined_at', 'member_role']);
-            $table->dropColumn('id');
         });
     }
 };

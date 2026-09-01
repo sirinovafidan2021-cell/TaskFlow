@@ -27,8 +27,8 @@ use Tests\TestCase;
 uses(TestCase::class, RefreshDatabase::class)->in(__FILE__);
 
 beforeEach(function (): void {
-    expect(config('database.default'))->toBe('mysql')
-        ->and(config('database.connections.mysql.database'))->toBe('taskflow_test');
+    expect(config('database.default'))->toBe('sqlite')
+        ->and(config('database.connections.sqlite.database'))->toBe(':memory:');
     $this->seed(RolePermissionSeeder::class);
 });
 
@@ -762,4 +762,3 @@ test('Admin user index searches names emails and global roles without exposing s
     $response->assertOk()->assertSee('Searchable Manager')->assertDontSee('Filtered Member')->assertDontSee($manager->password)->assertDontSee($member->password);
     $this->actingAs($admin)->get('/admin/users?page=2')->assertOk()->assertSee('Pagination User');
 });
-

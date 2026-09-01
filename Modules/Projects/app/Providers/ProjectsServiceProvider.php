@@ -22,6 +22,7 @@ class ProjectsServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->loadRoutesFrom(module_path('Projects', 'routes/web.php'));
+        \Illuminate\Support\Facades\Route::prefix('api/v1')->middleware(['api', 'auth:sanctum', 'active-user', 'throttle:taskflow-api'])->as('api.v1.')->group(module_path('Projects', 'routes/api.php'));
         $this->loadViewsFrom(module_path('Projects', 'resources/views'), 'projects');
         $this->loadMigrationsFrom(module_path('Projects', 'database/migrations'));
 

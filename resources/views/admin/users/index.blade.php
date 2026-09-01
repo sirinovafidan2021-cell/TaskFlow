@@ -39,13 +39,14 @@
         <section class="mt-7 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-slate-100 text-left text-sm">
-                    <thead class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500"><tr><th class="px-6 py-4">User</th><th class="px-6 py-4">Global role</th><th class="px-6 py-4">Project memberships</th><th class="px-6 py-4">Created</th><th class="px-6 py-4"><span class="sr-only">Edit</span></th></tr></thead>
+                    <thead class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500"><tr><th class="px-6 py-4">User</th><th class="px-6 py-4">Global role</th><th class="px-6 py-4">Account</th><th class="px-6 py-4">Project memberships</th><th class="px-6 py-4">Created</th><th class="px-6 py-4"><span class="sr-only">Edit</span></th></tr></thead>
                     <tbody class="divide-y divide-slate-100">
                         @foreach ($users as $managedUser)
                             @php($role = $managedUser->getRoleNames()->first())
                             <tr class="transition hover:bg-slate-50">
                                 <td class="px-6 py-4"><p class="font-semibold text-slate-900">{{ $managedUser->name }}</p><p class="mt-1 text-xs text-slate-500">{{ $managedUser->email }}</p></td>
                                 <td class="px-6 py-4"><span class="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700">{{ $role ? ucwords(str_replace('_', ' ', $role)) : 'No role' }}</span></td>
+                                <td class="px-6 py-4"><span class="rounded-full px-2.5 py-1 text-xs font-semibold {{ $managedUser->isActive() ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700' }}">{{ $managedUser->status->value }}</span></td>
                                 <td class="px-6 py-4 text-slate-600">{{ $managedUser->project_memberships_count }}</td>
                                 <td class="px-6 py-4 text-slate-600">{{ $managedUser->created_at?->format('M j, Y') }}</td>
                                 <td class="px-6 py-4 text-right"><a href="{{ route('admin.users.edit', $managedUser) }}" class="rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-indigo-300 hover:text-indigo-700">Edit</a></td>

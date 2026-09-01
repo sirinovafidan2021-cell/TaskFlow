@@ -219,12 +219,12 @@ Never make a nullable issue number permanent. The final schema enforces project 
 The expected implementation-phase graph is:
 
 ```text
-Projects  -> Activity
+Projects  -> Tasks (membership-removal assignment query), Activity
 Tasks     -> Projects, Media, Activity
 Media     -> host User/Storage only
 Activity  -> Projects, Tasks (scoped reads)
 Dashboard -> Projects, Tasks, Activity
-Host      -> Projects/Tasks only for user-lifecycle coordination
+Host      -> Projects, Tasks, Activity for user-lifecycle coordination
 ```
 
 This graph contains deliberate direct/cyclic knowledge around Activity. It is documented, tested, and deferred to `ROADMAP.md`; it must not be refactored during feature completion.

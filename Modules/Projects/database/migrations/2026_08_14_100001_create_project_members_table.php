@@ -9,6 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('project_members', function (Blueprint $table): void {
+            $table->id();
             $table->foreignId('project_id')->constrained('projects')->cascadeOnDelete();
             $table->foreignId('user_id')->constrained('users')->restrictOnDelete();
             $table->timestamps();

@@ -6,10 +6,15 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Modules\Projects\Data\ProjectData;
+use Modules\Projects\Data\CreateProjectData;
+use Modules\Projects\Data\UpdateProjectData;
+use Modules\Projects\Data\ProjectFiltersData;
+use Modules\Projects\Data\ChangeProjectStatusData;
+use Modules\Projects\Enums\ProjectStatus;
 use Modules\Projects\Http\Requests\Api\V1\ProjectIndexRequest;
 use Modules\Projects\Http\Requests\StoreProjectRequest;
 use Modules\Projects\Http\Requests\UpdateProjectRequest;
+use Modules\Projects\Http\Requests\ChangeProjectStatusRequest;
 use Modules\Projects\Http\Resources\ProjectResource;
 use Modules\Projects\Models\Project;
 use Modules\Projects\Repositories\ProjectRepository;
@@ -30,8 +35,7 @@ class ProjectController
 
         return ProjectResource::collection($this->projects->paginateFor(
             $request->user(),
-            $request->string('search')->trim()->toString(),
-            $request->string('status')->toString(),
+            ProjectFiltersData::fromArray($request->validated()),
             $request->integer('per_page', 12),
         ));
     }
@@ -49,7 +53,7 @@ class ProjectController
 
         $project = $this->projectService->create(
             $request->user(),
-            ProjectData::fromArray($request->validated()),
+            CreateProjectData::fromArray($request->validated()),
         );
 
         return (new ProjectResource($project->load('owner')))->response()->setStatusCode(201);
@@ -57,11 +61,11 @@ class ProjectController
 
     public function update(UpdateProjectRequest $request, Project $project): ProjectResource
     {
-        $this->authorize('update', [$project, true]);
+        $this->authorize('update', $project);
 
         $project = $this->projectService->update(
             $project,
-            ProjectData::fromArray($request->validated()),
+            UpdateProjectData::fromArray($request->validated()),
             $request->user(),
         );
 
@@ -70,15 +74,22 @@ class ProjectController
 
     public function activate(Request $request, Project $project): ProjectResource
     {
-        $this->authorize('update', [$project, true]);
+        $this->authorize('update', $project);
 
-        return new ProjectResource($this->projectService->activate($project, $request->user())->load('owner'));
+        return new ProjectResource($this->projectService->changeStatus($project, new ChangeProjectStatusData(ProjectStatus::Active), $request->user())->load('owner'));
     }
 
     public function archive(Request $request, Project $project): ProjectResource
     {
-        $this->authorize('archive', [$project, true]);
+        $this->authorize('archive', $project);
 
-        return new ProjectResource($this->projectService->archive($project, $request->user())->load('owner'));
+        return new ProjectResource($this->projectService->changeStatus($project, new ChangeProjectStatusData(ProjectStatus::Archived), $request->user())->load('owner'));
+    }
+
+    public function changeStatus(ChangeProjectStatusRequest $request, Project $project): ProjectResource
+    {
+        $this->authorize($request->validated('status') === ProjectStatus::Archived->value ? 'archive' : 'update', $project);
+
+        return new ProjectResource($this->projectService->changeStatus($project, new ChangeProjectStatusData(ProjectStatus::from($request->validated('status'))), $request->user())->load('owner'));
     }
 }

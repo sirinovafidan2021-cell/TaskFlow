@@ -10,6 +10,7 @@ use Modules\Activity\Services\ActivityRecorder;
 use Modules\Tasks\Models\Task;
 use Modules\Tasks\Models\TaskAttachment;
 use Modules\Tasks\Repositories\TaskAttachmentRepository;
+use Modules\Projects\Enums\ProjectStatus;
 
 class TaskAttachmentService
 {
@@ -17,6 +18,7 @@ class TaskAttachmentService
 
     public function upload(Task $task, User $actor, UploadedFile $file): TaskAttachment
     {
+        if ($task->project->status !== ProjectStatus::Active) { throw new \LogicException('Only active projects accept attachments.'); }
         $disk = 'local';
         $path = $file->store("task-attachments/{$task->id}", $disk);
         try {
@@ -39,6 +41,7 @@ class TaskAttachmentService
 
     public function delete(TaskAttachment $attachment, User $actor): void
     {
+        if ($attachment->task->project->status !== ProjectStatus::Active) { throw new \LogicException('Only active projects allow attachment changes.'); }
         DB::transaction(function () use ($attachment, $actor) {
             $properties = ['project_id' => $attachment->task->project_id, 'task_id' => $attachment->task_id, 'attachment_id' => $attachment->id, 'filename' => $attachment->original_name];
             Storage::disk($attachment->disk)->delete($attachment->path);

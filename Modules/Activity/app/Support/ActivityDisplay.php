@@ -13,6 +13,7 @@ final class ActivityDisplay
             'project.updated' => 'Project updated',
             'project.activated' => 'Project activated',
             'project.archived' => 'Project archived',
+            'project.status_changed' => 'Project status changed',
             'project.member_added' => 'Member added',
             'project.member_removed' => 'Member removed',
             'task.created' => 'Task created',
@@ -39,6 +40,9 @@ final class ActivityDisplay
                 : ($properties['task_title'] ?? null),
             'project.updated', 'task.updated' => ! empty($properties['changed'])
                 ? 'Changed: '.implode(', ', array_map(static fn (string $field) => str_replace('_', ' ', $field), $properties['changed']))
+                : null,
+            'project.status_changed' => isset($properties['old_status'], $properties['new_status'])
+                ? self::status($properties['old_status']).' → '.self::status($properties['new_status'])
                 : null,
             'project.member_added' => isset($properties['member_name']) ? 'Added '.$properties['member_name'] : null,
             'project.member_removed' => isset($properties['member_name']) ? 'Removed '.$properties['member_name'] : null,

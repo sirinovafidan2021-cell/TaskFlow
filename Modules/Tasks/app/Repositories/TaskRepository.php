@@ -16,6 +16,8 @@ interface TaskRepository
 
     public function delete(Task $task): void;
 
+    public function unassignOpenWorkFor(User $user): int;
+
     public function filterProjectsFor(User $user): Collection;
 
     public function filterUsersFor(User $user): Collection;

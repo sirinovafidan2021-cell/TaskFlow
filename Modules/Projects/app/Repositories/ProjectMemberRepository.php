@@ -15,9 +15,15 @@ interface ProjectMemberRepository
 
     public function delete(Project $project, User $user): void;
 
+    public function updateRole(Project $project, User $user, ProjectMemberRole $role): ProjectMember;
+
+    public function find(Project $project, User $user): ?ProjectMember;
+
     public function exists(Project $project, User $user): bool;
 
     public function isManager(Project $project, User $user): bool;
+
+    public function openAssignmentCount(Project $project, User $user): int;
 
     /** @return Collection<int, ProjectMember> */
     public function allForProject(Project $project): Collection;

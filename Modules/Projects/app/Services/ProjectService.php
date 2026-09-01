@@ -6,7 +6,9 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Modules\Activity\Services\ActivityRecorder;
-use Modules\Projects\Data\ProjectData;
+use Modules\Projects\Data\CreateProjectData;
+use Modules\Projects\Data\UpdateProjectData;
+use Modules\Projects\Data\ChangeProjectStatusData;
 use Modules\Projects\Enums\ProjectMemberRole;
 use Modules\Projects\Enums\ProjectStatus;
 use Modules\Projects\Models\Project;
@@ -20,11 +22,12 @@ class ProjectService
         private readonly ActivityRecorder $activity,
     ) {}
 
-    public function create(User $actor, ProjectData $data): Project
+    public function create(User $actor, CreateProjectData $data): Project
     {
         return DB::transaction(function () use ($actor, $data): Project {
             $project = new Project([
                 'name' => $data->name,
+                'key' => $data->key,
                 'slug' => $this->uniqueSlug($data->name),
                 'description' => $data->description,
                 'status' => ProjectStatus::Draft,
@@ -35,19 +38,26 @@ class ProjectService
 
             $project = $this->projects->save($project);
             $this->members->addMember($project, $actor, ProjectMemberRole::Manager, actor: $actor);
-            $this->activity->record('project.created', $actor, $project, ['project_id' => $project->id, 'project_name' => $project->name]);
+            $this->activity->record('project.created', $actor, $project, ['project_id' => $project->id, 'project_name' => $project->name, 'project_key' => $project->key, 'status' => $project->status->value]);
 
             return $project;
         });
     }
 
-    public function update(Project $project, ProjectData $data, User $actor): Project
+    public function update(Project $project, UpdateProjectData $data, User $actor): Project
     {
         return DB::transaction(function () use ($project, $data, $actor): Project {
-            $this->ensureMutable($project);
+            $this->ensureDetailsMutable($project);
+
+            if ($data->key !== null && $data->key !== $project->key && $this->projects->hasAllocatedIssues($project)) {
+                throw new \LogicException('Project key cannot change after an issue has been allocated.');
+            }
+
+            $old = ['name' => $project->name, 'key' => $project->key, 'description' => $project->description, 'starts_at' => $project->starts_at?->toDateString(), 'due_at' => $project->due_at?->toDateString()];
 
             $project->fill([
                 'name' => $data->name,
+                'key' => $data->key ?? $project->key,
                 'description' => $data->description,
                 'starts_at' => $data->startsAt,
                 'due_at' => $data->dueAt,
@@ -64,6 +74,8 @@ class ProjectService
                 $this->activity->record('project.updated', $actor, $project, [
                     'project_id' => $project->id,
                     'changed' => $changed,
+                    'old' => array_intersect_key($old, array_flip($changed)),
+                    'new' => array_intersect_key(['name' => $project->name, 'key' => $project->key, 'description' => $project->description, 'starts_at' => $project->starts_at?->toDateString(), 'due_at' => $project->due_at?->toDateString()], array_flip($changed)),
                 ]);
             }
 
@@ -71,37 +83,28 @@ class ProjectService
         });
     }
 
-    public function archive(Project $project, User $actor): Project
+    public function allocateIssueNumber(Project $project): string
     {
-        return DB::transaction(function () use ($project, $actor): Project {
-            $this->ensureMutable($project);
+        $lockedProject = $this->projects->lockForUpdate($project);
+        $number = $lockedProject->key.'-'.$lockedProject->next_issue_number;
+        $lockedProject->forceFill(['next_issue_number' => $lockedProject->next_issue_number + 1]);
+        $this->projects->save($lockedProject);
 
-            $project->status = ProjectStatus::Archived;
-
-            $project = $this->projects->save($project);
-            $this->activity->record('project.archived', $actor, $project, ['project_id' => $project->id]);
-
-            return $project;
-        });
+        return $number;
     }
 
-    public function activate(Project $project, User $actor): Project
+    public function changeStatus(Project $project, ChangeProjectStatusData $data, User $actor): Project
     {
-        return DB::transaction(function () use ($project, $actor): Project {
-            $this->ensureMutable($project);
-
-            if ($project->status === ProjectStatus::Active) {
-                return $project;
+        return DB::transaction(function () use ($project, $data, $actor): Project {
+            $lockedProject = $this->projects->lockForUpdate($project);
+            $oldStatus = $lockedProject->status;
+            if (! $this->canTransition($oldStatus, $data->status)) {
+                throw new \LogicException('The requested project lifecycle transition is not allowed.');
             }
+            $lockedProject->status = $data->status;
 
-            if ($project->status !== ProjectStatus::Draft) {
-                throw new \LogicException('Only draft projects can be activated.');
-            }
-
-            $project->status = ProjectStatus::Active;
-
-            $project = $this->projects->save($project);
-            $this->activity->record('project.activated', $actor, $project, ['project_id' => $project->id]);
+            $project = $this->projects->save($lockedProject);
+            $this->activity->record('project.status_changed', $actor, $project, ['project_id' => $project->id, 'old_status' => $oldStatus->value, 'new_status' => $project->status->value]);
 
             return $project;
         });
@@ -121,10 +124,20 @@ class ProjectService
         return $slug;
     }
 
-    private function ensureMutable(Project $project): void
+    private function ensureDetailsMutable(Project $project): void
     {
-        if ($project->status === ProjectStatus::Archived) {
-            throw new \LogicException('Archived projects are read-only.');
+        if (in_array($project->status, [ProjectStatus::Completed, ProjectStatus::Archived], true)) {
+            throw new \LogicException('Completed and archived projects are read-only.');
         }
+    }
+
+    private function canTransition(ProjectStatus $from, ProjectStatus $to): bool
+    {
+        return match ($from) {
+            ProjectStatus::Draft => in_array($to, [ProjectStatus::Active, ProjectStatus::Archived], true),
+            ProjectStatus::Active => in_array($to, [ProjectStatus::Completed, ProjectStatus::Archived], true),
+            ProjectStatus::Completed => in_array($to, [ProjectStatus::Active, ProjectStatus::Archived], true),
+            ProjectStatus::Archived => false,
+        };
     }
 }

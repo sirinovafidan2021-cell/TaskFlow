@@ -2,12 +2,15 @@
 
 namespace Modules\Projects\Http\Controllers;
 
+use App\Repositories\UserRepository;
 use App\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 use Modules\Projects\Enums\ProjectMemberRole;
 use Modules\Projects\Http\Requests\StoreProjectMemberRequest;
+use Modules\Projects\Http\Requests\UpdateProjectMemberRequest;
+use Modules\Projects\Data\UpdateProjectMemberData;
 use Modules\Projects\Models\Project;
 use Modules\Projects\Services\ProjectMemberService;
 
@@ -15,7 +18,7 @@ class ProjectMemberController
 {
     use AuthorizesRequests;
 
-    public function __construct(private readonly ProjectMemberService $members) {}
+    public function __construct(private readonly ProjectMemberService $members, private readonly UserRepository $users) {}
 
     public function index(Project $project): View
     {
@@ -35,7 +38,7 @@ class ProjectMemberController
 
         $this->members->addMember(
             $project,
-            User::query()->findOrFail($request->integer('user_id')),
+            $this->users->findOrFail($request->integer('user_id')),
             ProjectMemberRole::from($request->string('member_role')->toString()),
             actor: $request->user(),
         );
@@ -50,5 +53,19 @@ class ProjectMemberController
         $this->members->removeMember($project, $user, request()->user());
 
         return back()->with('success', 'Project member removed.');
+    }
+
+    public function update(UpdateProjectMemberRequest $request, Project $project, User $user): RedirectResponse
+    {
+        $this->authorize('manageMembers', $project);
+
+        $this->members->updateMemberRole(
+            $project,
+            $user,
+            new UpdateProjectMemberData(ProjectMemberRole::from($request->string('member_role')->toString())),
+            $request->user(),
+        );
+
+        return back()->with('success', 'Project member role updated.');
     }
 }

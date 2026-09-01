@@ -2,11 +2,12 @@
 
 namespace Modules\Tasks\Http\Controllers\Api\V1;
 
-use App\Models\User;
+use App\Repositories\UserRepository;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Modules\Projects\Models\Project;
+use Modules\Projects\Repositories\ProjectRepository;
 use Modules\Tasks\Data\CreateTaskData;
 use Modules\Tasks\Data\TaskFiltersData;
 use Modules\Tasks\Data\UpdateTaskData;
@@ -32,6 +33,8 @@ class TaskController
         private readonly TaskService $taskService,
         private readonly TaskAssignmentService $assignments,
         private readonly TaskStatusService $statuses,
+        private readonly UserRepository $users,
+        private readonly ProjectRepository $projects,
     ) {}
 
     public function index(TaskIndexRequest $request): AnonymousResourceCollection
@@ -55,8 +58,8 @@ class TaskController
     public function store(StoreTaskRequest $request): JsonResponse
     {
         $data = $request->validated();
-        $project = Project::query()->findOrFail($data['project_id']);
-        $this->authorize('create', [Task::class, $project, true]);
+        $project = $this->projects->findOrFail($data['project_id']);
+        $this->authorize('create', [Task::class, $project]);
 
         $task = $this->taskService->create(
             $request->user(),
@@ -89,7 +92,7 @@ class TaskController
         $this->authorize('assign', $task);
 
         $assignee = $request->filled('assignee_id')
-            ? User::query()->findOrFail($request->integer('assignee_id'))
+            ? $this->users->findOrFail($request->integer('assignee_id'))
             : null;
         $task = $this->assignments->assign($task->load('project'), $assignee, $request->user());
 

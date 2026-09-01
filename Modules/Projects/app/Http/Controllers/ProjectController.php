@@ -7,10 +7,14 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Modules\Activity\Services\ActivityQueryService;
-use Modules\Projects\Data\ProjectData;
+use Modules\Projects\Data\CreateProjectData;
+use Modules\Projects\Data\UpdateProjectData;
+use Modules\Projects\Data\ProjectFiltersData;
+use Modules\Projects\Data\ChangeProjectStatusData;
 use Modules\Projects\Enums\ProjectStatus;
 use Modules\Projects\Http\Requests\StoreProjectRequest;
 use Modules\Projects\Http\Requests\UpdateProjectRequest;
+use Modules\Projects\Http\Requests\ChangeProjectStatusRequest;
 use Modules\Projects\Models\Project;
 use Modules\Projects\Repositories\ProjectRepository;
 use Modules\Projects\Services\ProjectService;
@@ -33,8 +37,7 @@ class ProjectController
         return view('projects::index', [
             'projects' => $this->projects->paginateFor(
                 $request->user(),
-                $request->string('q')->trim()->toString(),
-                $request->string('status')->toString(),
+                ProjectFiltersData::fromArray($request->only(['q', 'status'])),
             ),
             'statuses' => ProjectStatus::cases(),
         ]);
@@ -53,7 +56,7 @@ class ProjectController
 
         $project = $this->projectService->create(
             $request->user(),
-            ProjectData::fromArray($request->validated()),
+            CreateProjectData::fromArray($request->validated()),
         );
 
         return redirect()->route('projects.show', $project)
@@ -83,7 +86,7 @@ class ProjectController
     {
         $this->authorize('update', $project);
 
-        $project = $this->projectService->update($project, ProjectData::fromArray($request->validated()), $request->user());
+        $project = $this->projectService->update($project, UpdateProjectData::fromArray($request->validated()), $request->user());
 
         return redirect()->route('projects.show', $project)
             ->with('success', 'Project updated successfully.');
@@ -93,7 +96,7 @@ class ProjectController
     {
         $this->authorize('archive', $project);
 
-        $this->projectService->archive($project, request()->user());
+        $this->projectService->changeStatus($project, new ChangeProjectStatusData(ProjectStatus::Archived), request()->user());
 
         return redirect()->route('projects.index')
             ->with('success', 'Project archived successfully.');
@@ -103,9 +106,17 @@ class ProjectController
     {
         $this->authorize('update', $project);
 
-        $this->projectService->activate($project, request()->user());
+        $this->projectService->changeStatus($project, new ChangeProjectStatusData(ProjectStatus::Active), request()->user());
 
         return redirect()->route('projects.show', $project)
             ->with('success', 'Project activated successfully.');
+    }
+
+    public function complete(Project $project): RedirectResponse
+    {
+        $this->authorize('update', $project);
+        $this->projectService->changeStatus($project, new ChangeProjectStatusData(ProjectStatus::Completed), request()->user());
+
+        return redirect()->route('projects.show', $project)->with('success', 'Project completed successfully.');
     }
 }

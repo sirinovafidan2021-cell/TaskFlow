@@ -4,6 +4,7 @@ namespace Modules\Projects\Models;
 
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\Projects\Enums\ProjectMemberRole;
@@ -11,6 +12,11 @@ use Modules\Projects\Enums\ProjectMemberRole;
 class ProjectMember extends Model
 {
     use HasFactory;
+
+    protected static function newFactory(): Factory
+    {
+        return \Database\Factories\ProjectMemberFactory::new();
+    }
 
     protected $fillable = [
         'project_id',

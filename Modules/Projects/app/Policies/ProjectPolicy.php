@@ -29,29 +29,20 @@ class ProjectPolicy
                 || $project->members()->whereKey($user->id)->exists());
     }
 
-    public function update(User $user, Project $project, bool $allowArchived = false): bool
+    public function update(User $user, Project $project): bool
     {
-        return $user->hasPermissionTo(PermissionName::ProjectsUpdate->value)
-            && ($user->hasRole(UserRole::Admin->value) || $project->owner_id === $user->id)
-            && ($allowArchived || $project->status !== ProjectStatus::Archived);
+        return $user->hasRole(UserRole::Admin->value) || $project->owner_id === $user->id || $this->isManager($project, $user);
     }
 
-    public function archive(User $user, Project $project, bool $allowArchived = false): bool
+    public function archive(User $user, Project $project): bool
     {
-        return $user->hasPermissionTo(PermissionName::ProjectsArchive->value)
-            && ($user->hasRole(UserRole::Admin->value) || $project->owner_id === $user->id)
-            && ($allowArchived || $project->status !== ProjectStatus::Archived);
+        return $this->update($user, $project);
     }
 
-    public function manageMembers(User $user, Project $project, bool $allowArchived = false): bool
+    public function manageMembers(User $user, Project $project): bool
     {
-        return $user->hasPermissionTo(PermissionName::ProjectsMembersManage->value)
-            && ($user->hasRole(UserRole::Admin->value)
-                || $project->owner_id === $user->id
-                || $project->memberships()
-                    ->where('user_id', $user->id)
-                    ->where('member_role', ProjectMemberRole::Manager->value)
-                    ->exists())
-            && ($allowArchived || $project->status !== ProjectStatus::Archived);
+        return $this->update($user, $project);
     }
+
+    private function isManager(Project $project, User $user): bool { return $project->memberships()->where('user_id',$user->id)->where('member_role',ProjectMemberRole::Manager->value)->exists(); }
 }

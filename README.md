@@ -24,8 +24,9 @@ the latter also runs a migration and therefore requires an identified database
 and separate authorization.
 
 Prerequisites are PHP 8.3 or newer, Composer 2, and Node.js
-`^20.19.0 || >=22.12.0` (the range locked by Vite 8). A clean checkout uses
-the existing locks only:
+`^20.19.0 || >=22.12.0` (the range locked by Vite 8), with `node`, `npm`, and
+`npx` available on the shell `PATH`. A clean checkout uses the existing locks
+only:
 
 ```bash
 composer install --no-interaction --prefer-dist
