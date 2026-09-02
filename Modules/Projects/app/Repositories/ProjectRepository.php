@@ -12,6 +12,8 @@ interface ProjectRepository
     public function findOrFail(int $id): Project;
     public function paginateFor(User $user, ProjectFiltersData $filters, int $perPage = 12): LengthAwarePaginator;
 
+    public function detailFor(User $user, Project $project): Project;
+
     public function save(Project $project): Project;
 
     public function lockForUpdate(Project $project): Project;

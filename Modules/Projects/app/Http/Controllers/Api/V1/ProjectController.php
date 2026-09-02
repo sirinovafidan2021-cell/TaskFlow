@@ -40,11 +40,12 @@ class ProjectController
         ));
     }
 
-    public function show(Project $project): ProjectResource
+    public function show(Request $request, Project $project): ProjectResource
     {
+        $project = $this->projects->detailFor($request->user(), $project);
         $this->authorize('view', $project);
 
-        return new ProjectResource($project->load('owner'));
+        return new ProjectResource($project);
     }
 
     public function store(StoreProjectRequest $request): JsonResponse
@@ -56,7 +57,7 @@ class ProjectController
             CreateProjectData::fromArray($request->validated()),
         );
 
-        return (new ProjectResource($project->load('owner')))->response()->setStatusCode(201);
+        return (new ProjectResource($this->projects->detailFor($request->user(), $project)))->response()->setStatusCode(201);
     }
 
     public function update(UpdateProjectRequest $request, Project $project): ProjectResource
@@ -69,27 +70,20 @@ class ProjectController
             $request->user(),
         );
 
-        return new ProjectResource($project->load('owner'));
+        return new ProjectResource($this->projects->detailFor($request->user(), $project));
     }
 
     public function activate(Request $request, Project $project): ProjectResource
     {
         $this->authorize('update', $project);
 
-        return new ProjectResource($this->projectService->changeStatus($project, new ChangeProjectStatusData(ProjectStatus::Active), $request->user())->load('owner'));
-    }
-
-    public function archive(Request $request, Project $project): ProjectResource
-    {
-        $this->authorize('archive', $project);
-
-        return new ProjectResource($this->projectService->changeStatus($project, new ChangeProjectStatusData(ProjectStatus::Archived), $request->user())->load('owner'));
+        return new ProjectResource($this->projects->detailFor($request->user(), $this->projectService->changeStatus($project, new ChangeProjectStatusData(ProjectStatus::Active), $request->user())));
     }
 
     public function changeStatus(ChangeProjectStatusRequest $request, Project $project): ProjectResource
     {
         $this->authorize($request->validated('status') === ProjectStatus::Archived->value ? 'archive' : 'update', $project);
 
-        return new ProjectResource($this->projectService->changeStatus($project, new ChangeProjectStatusData(ProjectStatus::from($request->validated('status'))), $request->user())->load('owner'));
+        return new ProjectResource($this->projects->detailFor($request->user(), $this->projectService->changeStatus($project, new ChangeProjectStatusData(ProjectStatus::from($request->validated('status'))), $request->user())));
     }
 }

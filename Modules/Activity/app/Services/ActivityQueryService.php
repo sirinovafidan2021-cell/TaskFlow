@@ -8,7 +8,6 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Modules\Projects\Models\Project;
-use Modules\Projects\Models\ProjectMember;
 use Modules\Tasks\Models\Task;
 use Spatie\Activitylog\Models\Activity;
 
@@ -92,19 +91,12 @@ class ActivityQueryService
             return $query;
         }
 
-        if (! $user->hasRole(UserRole::ProjectManager->value)) {
-            $taskIds = Task::query()->where('assignee_id', $user->id)->pluck('id');
-
-            return $query->whereIn('properties->task_id', $taskIds->all());
-        }
-
         $projectIds = Project::query()
             ->where('owner_id', $user->id)
             ->pluck('id')
-            ->merge(ProjectMember::query()
-                ->where('user_id', $user->id)
-                ->where('member_role', 'manager')
-                ->pluck('project_id'))
+            ->merge(Project::query()
+                ->whereHas('memberships', fn (Builder $memberships) => $memberships->where('user_id', $user->id))
+                ->pluck('id'))
             ->unique()
             ->values();
 

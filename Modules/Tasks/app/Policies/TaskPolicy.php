@@ -10,6 +10,7 @@ use Modules\Projects\Services\ProjectMemberService;
 use Modules\Tasks\Models\Task;
 use Modules\Tasks\Models\TaskAttachment;
 use Modules\Tasks\Models\TaskComment;
+use Modules\Tasks\Enums\TaskStatus;
 
 class TaskPolicy
 {
@@ -32,17 +33,32 @@ class TaskPolicy
 
     public function update(User $user, Task $task): bool
     {
-        return $user->hasPermissionTo(PermissionName::TasksUpdate->value) && $this->members->canManage($task->project, $user);
+        if ($task->project->status !== ProjectStatus::Active || ! $this->view($user, $task)) {
+            return false;
+        }
+
+        return ($user->hasPermissionTo(PermissionName::TasksUpdate->value) && $this->members->canManage($task->project, $user))
+            || ($task->creator_id === $user->id && $task->status === TaskStatus::Todo);
     }
 
     public function delete(User $user, Task $task): bool
     {
-        return $user->hasPermissionTo(PermissionName::TasksDelete->value) && $this->members->canManage($task->project, $user);
+        return $task->project->status === ProjectStatus::Active
+            && $user->hasPermissionTo(PermissionName::TasksDelete->value)
+            && $this->members->canManage($task->project, $user);
     }
 
-    public function assign(User $user, Task $task): bool
+    public function assign(User $user, Task $task, ?User $assignee = null): bool
     {
-        return $user->hasPermissionTo(PermissionName::TasksAssign->value) && $this->members->canManage($task->project, $user);
+        if ($task->project->status !== ProjectStatus::Active || ! $this->view($user, $task)) {
+            return false;
+        }
+
+        if ($user->hasPermissionTo(PermissionName::TasksAssign->value) && $this->members->canManage($task->project, $user)) {
+            return true;
+        }
+
+        return $assignee?->id === $user->id && $this->members->isMember($task->project, $user);
     }
 
     public function changeStatus(User $user, Task $task): bool
@@ -62,11 +78,15 @@ class TaskPolicy
 
     public function uploadAttachment(User $user, Task $task): bool
     {
-        return $user->hasPermissionTo(PermissionName::AttachmentsUpload->value) && $this->view($user, $task);
+        return $task->project->status === ProjectStatus::Active
+            && $user->hasPermissionTo(PermissionName::AttachmentsUpload->value)
+            && $this->view($user, $task);
     }
 
     public function deleteAttachment(User $user, Task $task, TaskAttachment $attachment): bool
     {
-        return $user->hasPermissionTo(PermissionName::AttachmentsDelete->value) && ($attachment->uploaded_by === $user->id || $this->members->canManage($task->project, $user));
+        return $task->project->status === ProjectStatus::Active
+            && $this->view($user, $task)
+            && ($attachment->uploaded_by === $user->id || $this->members->canManage($task->project, $user));
     }
 }

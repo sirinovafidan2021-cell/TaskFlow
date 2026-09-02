@@ -14,6 +14,11 @@ class TaskResource extends JsonResource
         return [
             'id' => $this->id,
             'number' => $this->number,
+            'display_key' => $this->display_key,
+            'issue_number' => $this->issue_number,
+            'type' => $this->type->value,
+            'parent' => $this->whenLoaded('parent', fn (): ?array => $this->parent ? $this->summary($this->parent) : null),
+            'subtasks' => $this->whenLoaded('subtasks', fn (): array => $this->subtasks->map(fn (Task $task): array => $this->summary($task))->values()->all()),
             'title' => $this->title,
             'description' => $this->description,
             'status' => $this->status->value,
@@ -37,5 +42,10 @@ class TaskResource extends JsonResource
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
         ];
+    }
+
+    private function summary(Task $task): array
+    {
+        return ['id' => $task->id, 'display_key' => $task->display_key, 'title' => $task->title, 'type' => $task->type->value];
     }
 }

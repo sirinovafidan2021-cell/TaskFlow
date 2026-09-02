@@ -4,6 +4,8 @@ namespace Modules\Tasks\Http\Controllers;
 
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Validation\ValidationException;
+use Modules\Media\Exceptions\MediaUploadValidationException;
 use Modules\Tasks\Http\Requests\UploadTaskAttachmentRequest;
 use Modules\Tasks\Models\Task;
 use Modules\Tasks\Models\TaskAttachment;
@@ -18,7 +20,11 @@ class TaskAttachmentController
     public function store(UploadTaskAttachmentRequest $request, Task $task): RedirectResponse
     {
         $this->authorize('uploadAttachment', $task);
-        $this->attachments->upload($task->load('project'), $request->user(), $request->file('attachment'));
+        try {
+            $this->attachments->uploadMany($task->load('project'), $request->user(), $request->file('media'));
+        } catch (MediaUploadValidationException $exception) {
+            throw ValidationException::withMessages(['media' => [$exception->getMessage()]]);
+        }
 
         return back()->with('success', 'Attachment uploaded.');
     }
@@ -29,6 +35,14 @@ class TaskAttachmentController
         $this->authorize('view', $task);
 
         return $this->attachments->download($attachment);
+    }
+
+    public function preview(Task $task, TaskAttachment $attachment)
+    {
+        abort_unless($attachment->task_id === $task->id, 404);
+        $this->authorize('view', $task);
+
+        return $this->attachments->preview($attachment);
     }
 
     public function destroy(Task $task, TaskAttachment $attachment): RedirectResponse

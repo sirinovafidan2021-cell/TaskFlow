@@ -8,7 +8,6 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Modules\Activity\Services\ActivityQueryService;
-use Modules\Projects\Enums\ProjectMemberRole;
 use Modules\Projects\Enums\ProjectStatus;
 use Modules\Projects\Models\Project;
 use Modules\Projects\Models\ProjectMember;
@@ -53,10 +52,6 @@ class DashboardService
 
         $memberships = ProjectMember::query()->where('user_id', $user->id);
 
-        if ($user->hasRole(UserRole::ProjectManager->value)) {
-            $memberships->where('member_role', ProjectMemberRole::Manager->value);
-        }
-
         $projectIds = Project::query()->where('owner_id', $user->id)->pluck('id')
             ->merge($memberships->pluck('project_id'))
             ->unique()
@@ -71,11 +66,7 @@ class DashboardService
             return Task::query();
         }
 
-        if ($user->hasRole(UserRole::ProjectManager->value)) {
-            return Task::query()->whereIn('project_id', $projectIds);
-        }
-
-        return Task::query()->where('assignee_id', $user->id);
+        return Task::query()->whereIn('project_id', $projectIds);
     }
 
     /** @return Collection<int, Task> */

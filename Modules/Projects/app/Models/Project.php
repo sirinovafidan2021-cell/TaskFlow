@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Projects\Enums\ProjectStatus;
+use Modules\Tasks\Models\Task;
 
 class Project extends Model
 {
@@ -56,5 +57,10 @@ class Project extends Model
     public function memberships(): HasMany
     {
         return $this->hasMany(ProjectMember::class);
+    }
+
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class);
     }
 }

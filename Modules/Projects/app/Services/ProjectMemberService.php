@@ -34,6 +34,14 @@ class ProjectMemberService
                 throw new LogicException('Projects and users must be persisted before membership is created.');
             }
 
+            if (! $user->isActive()) {
+                throw new LogicException('Suspended users cannot be added to project membership.');
+            }
+
+            if ($project->owner_id === $user->id && $role !== ProjectMemberRole::Manager) {
+                throw new LogicException('The project owner must be added as a project manager.');
+            }
+
             if ($this->isMember($project, $user)) {
                 throw new LogicException('This user is already a project member.');
             }

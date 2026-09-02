@@ -9,6 +9,7 @@ use Modules\Activity\Services\ActivityRecorder;
 use Modules\Projects\Data\CreateProjectData;
 use Modules\Projects\Data\UpdateProjectData;
 use Modules\Projects\Data\ChangeProjectStatusData;
+use Modules\Projects\Data\AllocatedIssueNumberData;
 use Modules\Projects\Enums\ProjectMemberRole;
 use Modules\Projects\Enums\ProjectStatus;
 use Modules\Projects\Models\Project;
@@ -83,14 +84,14 @@ class ProjectService
         });
     }
 
-    public function allocateIssueNumber(Project $project): string
+    public function allocateIssueNumber(Project $project): AllocatedIssueNumberData
     {
         $lockedProject = $this->projects->lockForUpdate($project);
-        $number = $lockedProject->key.'-'.$lockedProject->next_issue_number;
+        $issueNumber = $lockedProject->next_issue_number;
         $lockedProject->forceFill(['next_issue_number' => $lockedProject->next_issue_number + 1]);
         $this->projects->save($lockedProject);
 
-        return $number;
+        return new AllocatedIssueNumberData($issueNumber, $lockedProject->key.'-'.$issueNumber);
     }
 
     public function changeStatus(Project $project, ChangeProjectStatusData $data, User $actor): Project

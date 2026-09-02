@@ -52,7 +52,7 @@ class TaskController
     {
         $this->authorize('view', $task);
 
-        return new TaskResource($task->load(['project', 'creator', 'assignee']));
+        return new TaskResource($task->load(['project', 'creator', 'assignee', 'parent', 'subtasks']));
     }
 
     public function store(StoreTaskRequest $request): JsonResponse
@@ -67,7 +67,7 @@ class TaskController
             CreateTaskData::fromArray($project->id, $data),
         );
 
-        return (new TaskResource($task->load(['project', 'creator', 'assignee'])))->response()->setStatusCode(201);
+        return (new TaskResource($task->load(['project', 'creator', 'assignee', 'parent', 'subtasks'])))->response()->setStatusCode(201);
     }
 
     public function update(UpdateTaskRequest $request, Task $task): TaskResource
@@ -76,7 +76,7 @@ class TaskController
 
         $task = $this->taskService->update($task, UpdateTaskData::fromArray($request->validated()), $request->user());
 
-        return new TaskResource($task->load(['project', 'creator', 'assignee']));
+        return new TaskResource($task->load(['project', 'creator', 'assignee', 'parent', 'subtasks']));
     }
 
     public function destroy(Task $task): JsonResponse
@@ -89,11 +89,10 @@ class TaskController
 
     public function assign(AssignTaskRequest $request, Task $task): TaskResource
     {
-        $this->authorize('assign', $task);
-
         $assignee = $request->filled('assignee_id')
             ? $this->users->findOrFail($request->integer('assignee_id'))
             : null;
+        $this->authorize('assign', [$task, $assignee]);
         $task = $this->assignments->assign($task->load('project'), $assignee, $request->user());
 
         return new TaskResource($task->load(['project', 'creator', 'assignee']));

@@ -10,7 +10,6 @@ return new class extends Migration
     {
         Schema::create('tasks', function (Blueprint $table): void {
             $table->id();
-            // The number is assigned from the auto-increment id in TaskService's transaction.
             $table->string('number')->nullable()->unique();
             $table->foreignId('project_id')->constrained('projects')->restrictOnDelete();
             $table->foreignId('creator_id')->constrained('users')->restrictOnDelete();

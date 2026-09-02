@@ -30,6 +30,9 @@ class TaskStatusService
 
     public function change(Task $task, TaskStatus $to, User $actor): Task
     {
+        if ($to === TaskStatus::Done && $this->tasks->hasOpenSubtasks($task)) {
+            throw new InvalidTaskStatusTransition('A task with open subtasks cannot be completed.');
+        }
         if (! in_array($to, $this->availableStatuses($task, $actor), true)) {
             throw new InvalidTaskStatusTransition('This task status transition is not allowed.');
         }

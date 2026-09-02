@@ -7,12 +7,21 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Modules\Tasks\Data\TaskFiltersData;
 use Modules\Tasks\Models\Task;
+use Modules\Projects\Models\Project;
 
 interface TaskRepository
 {
     public function paginateFor(User $user, TaskFiltersData $filters, int $perPage = 12): LengthAwarePaginator;
 
     public function save(Task $task): Task;
+
+    public function findOrFail(int $id): Task;
+
+    public function hasOpenSubtasks(Task $task): bool;
+
+    public function hasSubtasks(Task $task): bool;
+
+    public function standardParentsForProject(Project $project): Collection;
 
     public function delete(Task $task): void;
 

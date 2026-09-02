@@ -18,6 +18,8 @@ class ProjectResource extends JsonResource
             'slug' => $this->slug,
             'description' => $this->description,
             'status' => $this->status->value,
+            'member_count' => $this->whenCounted('memberships'),
+            'task_count' => $this->whenCounted('tasks'),
             'owner' => $this->whenLoaded('owner', fn (): array => [
                 'id' => $this->owner->id,
                 'name' => $this->owner->name,

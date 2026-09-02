@@ -23,7 +23,7 @@ Rules:
 
 ## Active task
 
-`TF-400` — project key, lifecycle, and sequence schema; verified 2026-09-01. Növbəti dependency-ready task `TF-401`-dir.
+`TF-603` — Single-assignee rules; verified 2026-09-02. Növbəti dependency-ready task `TF-604`-dür.
 
 ## Implementation status
 
@@ -33,9 +33,9 @@ Rules:
 | 1. Test/factory/seed foundation | TF-100–TF-103 | in_progress | TF-100 və TF-102 verified; TF-101 explicit deferred `in_progress`, TF-103 aktivdir |
 | 2. Architecture/correctness repairs | TF-200–TF-205 | verified | TF-200–TF-205 üçün qeyd olunan SQLite test və route/architecture evidence-ləri keçib |
 | 3. Accounts and authentication | TF-300–TF-303 | verified | TF-300–TF-303 account lifecycle, session, token contract və security audit evidence-ləri SQLite suite-də keçib |
-| 4. Projects | TF-400–TF-402 | in_progress | TF-400 verified; membership roles və removal integrity üçün TF-401 dependency-ready-dir |
-| 5. Central Media | TF-500–TF-503 | pending | Central binary ownership and migrated task associations |
-| 6. Minimal Jira domain | TF-600–TF-610 | pending | Issue keys/types/subtasks, labels, watchers, backlog, board, comments |
+| 4. Projects | TF-400–TF-402 | verified | TF-400–TF-402 project key/lifecycle, membership integrity və Web/API presentation acceptance criteria-ları SQLite testləri ilə verified edildi |
+| 5. Central Media | TF-500–TF-503 | verified | TF-500–TF-503 central private Media scaffold, storage, migration və authorized Task Web/API flow-ları ilə verified edildi |
+| 6. Minimal Jira domain | TF-600–TF-610 | in_progress | TF-600–TF-603 verified: issue allocation, type/subtask, visibility, mutation və single-assignee qaydaları tamamlandı |
 | 7. UI/Livewire/JS | TF-700–TF-705 | pending | Shared UI and four approved Livewire components |
 | 8. Activity/notifications/Dashboard | TF-800–TF-802 | pending | Canonical audit, inbox, useful work queues/metrics |
 | 9. API contract | TF-900–TF-901 | pending | Complete named/versioned contract and reference collection |
@@ -85,26 +85,26 @@ Rules:
 | ID | Status | Depends on | Evidence |
 |---|---|---|---|
 | TF-400 | verified | TF-200, TF-203, TF-204, TF-205 | 2026-09-01: Project `key` və `next_issue_number` schema-sı, deterministic collision-safe backfill, project-local `KEY-N` task numbering, lifecycle transition table və immutable key/read-only service invariant-ları tətbiq edildi. Focused Projects lifecycle suite PASS — 5 test, 19 assertion; rollback suite PASS — 1 test, 7 assertion; architecture guard PASS — 2 test, 2 assertion; full SQLite suite PASS — 44 test, 203 assertion. |
-| TF-401 | pending | TF-205, TF-300, TF-400 | — |
-| TF-402 | pending | TF-201, TF-203, TF-400, TF-401 | — |
+| TF-401 | verified | TF-205, TF-300, TF-400 | 2026-09-02: Project member role update Web/API use case-i, owner manager invariant-ı, open-assignment 409 conflict count-i, active-user scope-u və add/update/remove transaction+Activity sərhədi tətbiq edildi. Focused integrity suite PASS — 7 test, 27 assertion; Projects suite PASS — 12 test, 46 assertion; full SQLite suite PASS — 51 test, 230 assertion. |
+| TF-402 | verified | TF-201, TF-203, TF-400, TF-401 | 2026-09-02: Validated/scoped project presentation, member/task summaries, key search, canonical status endpoint, target Resources və member API envelopes tamamlandı. Focused presentation suite PASS — 6 test, 48 assertion; Projects suite PASS — 18 test, 94 assertion; full SQLite suite PASS — 57 test, 278 assertion. Manual browser checklist-i final gate üçün project-specific maddələrlə yeniləndi. |
 
 ### Phase 5
 
 | ID | Status | Depends on | Evidence |
 |---|---|---|---|
-| TF-500 | pending | TF-200, TF-201, TF-202 | — |
-| TF-501 | pending | TF-203, TF-204, TF-500 | — |
-| TF-502 | pending | TF-501 | — |
-| TF-503 | pending | TF-502, TF-205 | — |
+| TF-500 | verified | TF-200, TF-201, TF-202 | 2026-09-02: `Modules/Media` provider/status, central private metadata schema, model, repository binding, metadata DTO/service, safe Resource, factory və module test discovery ilə əlavə edildi. Focused Media suite PASS — 5 test, 24 assertion; migration rollback PASS — 1 test, 7 assertion; full SQLite suite PASS — 62 test, 302 assertion. |
+| TF-501 | verified | TF-203, TF-204, TF-500 | 2026-09-02: Media üçün private randomized storage, server-side MIME/extension cütlüyü, 5 fayl/10 MB/image limitləri, SHA-256 metadata, safe stream/download header-ləri, missing-file və storage/DB failure compensation-u tətbiq edildi. Focused storage suite PASS — 7 test, 32 assertion; bütün Media suite PASS — 12 test, 56 assertion; full SQLite suite PASS — 69 test, 334 assertion. |
+| TF-502 | verified | TF-501 | 2026-09-02: `task_attachments.media_id` nullable/unique foreign key-i və preserved-data backfill-i əlavə edildi. Task attachment service/repository/model artıq Media association-u istifadə edir; legacy disk/path metadata verification üçün saxlanılıb. Focused migration/association suite PASS — 4 test, 31 assertion; Tasks suite PASS — 7 test, 41 assertion; rollback PASS — 1 test, 7 assertion; full SQLite suite PASS — 73 test, 365 assertion. |
+| TF-503 | verified | TF-502, TF-205 | 2026-09-02: Canonical `/tasks/{task}/media` Web/API routes, maksimum beşlik all-or-nothing upload, list/preview/download/delete, nested 404, uploader/manager delete və Active-state policy/service qoruması əlavə edildi. Focused suite PASS — 6 test, 33 assertion; full SQLite suite PASS — 79 test, 398 assertion. |
 
 ### Phase 6
 
 | ID | Status | Depends on | Evidence |
 |---|---|---|---|
-| TF-600 | pending | TF-400, TF-202 | — |
-| TF-601 | pending | TF-600, TF-203 | — |
-| TF-602 | pending | TF-205, TF-401, TF-600, TF-601 | — |
-| TF-603 | pending | TF-602, TF-401 | — |
+| TF-600 | verified | TF-400, TF-202 | 2026-09-02: Task `issue_number` local sequence-i, `project_id + issue_number` unique constraint-i, non-null display key/sequence invariant-ı, `TSK-*` deterministic backfill və migration report mapping-i əlavə edildi. Focused allocation suite PASS — 4 test, 19 assertion; Projects lifecycle suite PASS — 5 test, 19 assertion; rollback PASS — 1 test, 7 assertion; full SQLite suite PASS — 83 test, 417 assertion. |
+| TF-601 | verified | TF-600, TF-203 | 2026-09-02: `TaskType` (`task`, `bug`, `story`, `subtask`), Task parent foreign key/index-i, create/update/filter/Resource/UI integration-i və same-project/one-level/completion guard-ları əlavə edildi. Focused suite PASS — 4 test, 21 assertion; full SQLite suite PASS — 87 test, 438 assertion. |
+| TF-602 | verified | TF-205, TF-401, TF-600, TF-601 | 2026-09-02: Project member bütün görünən project work-larını list/API/Dashboard/Activity scope-larında görür və Active project-də report edə bilir. Manager edit/delete, reporter-in yalnız Todo state-də öz taskını edit etməsi, Completed/Archived service qoruması və soft-delete audit davranışı focused matrix ilə yoxlandı. Focused suite PASS — 5 test, 38 assertion; full SQLite suite PASS — 92 test, 476 assertion. |
+| TF-603 | verified | TF-602, TF-401 | 2026-09-02: Nullable single `assignee_id` saxlanıldı; member yalnız özünü, manager isə aktiv project member-i assign/unassign edir. Service membership/status/actor invariant-larını, assignee auto-watch və actor-dan fərqli recipient üçün safe database notification-u transaction-da tətbiq edir. Focused suite + rollback PASS — 6 test, 30 assertion; full SQLite suite PASS — 97 test, 499 assertion. |
 | TF-604 | pending | TF-602, TF-603 | — |
 | TF-605 | pending | TF-400, TF-602 | — |
 | TF-606 | pending | TF-300, TF-401, TF-602, TF-603 | — |
@@ -181,6 +181,23 @@ Result:
 - MySQL compatibility command işə salınmadı: `TASKFLOW_MYSQL_TEST_DATABASE` adlı təsdiqlənmiş dedicated database və ayrıca MySQL execution icazəsi yoxdur. Bu skip cari taskın SQLite acceptance sübutunu pozmur, lakin gələcək ayrıca approved compatibility gate-də yenidən yoxlanmalıdır.
 Files/areas reviewed: bütün host, Projects və Tasks inherited migration-ları; foreign key delete davranışları, unique/composite index-lər, nullable sahələr, soft delete və enum-string sütunları.
 Remaining risk or blocker: Persistent database-lər üçün mənbə migration redaktələri artıq run edilmiş migration-ları yenidən icra etmir; bu taskın dəyişiklikləri existing data üzərində up əməliyyatı etmir. Production/persistent upgrade run və MySQL compatibility ayrıca təsdiqlənmiş environment tələb edir. TF-200 üçün task-owned blocker yoxdur.
+Reviewer: Codex
+```
+
+```text
+Date/time: 2026-09-02 +0400
+Task ID: TF-602
+Commit/worktree state (if Git is authorized): Git əməliyyatları bu task üçün icazəli deyildi; yoxlanılmadı.
+Commands/checks:
+- `php -l Modules/Tasks/app/Policies/TaskPolicy.php && php -l Modules/Tasks/app/Services/TaskService.php && php -l Modules/Tasks/app/Repositories/EloquentTaskRepository.php && php -l Modules/Activity/app/Services/ActivityQueryService.php && php -l Modules/Dashboard/app/Services/DashboardService.php && php -l Modules/Tasks/tests/Feature/TaskVisibilityAndMutationTest.php`.
+- `env APP_PACKAGES_CACHE=/tmp/taskflow-laravel-cache/packages.php APP_SERVICES_CACHE=/tmp/taskflow-laravel-cache/services.php APP_CONFIG_CACHE=/tmp/taskflow-laravel-cache/config.php APP_ROUTES_CACHE=/tmp/taskflow-laravel-cache/routes-v7.php APP_EVENTS_CACHE=/tmp/taskflow-laravel-cache/events.php VIEW_COMPILED_PATH=/tmp/taskflow-laravel-views LOG_CHANNEL=errorlog LOG_LEVEL=critical php artisan test --compact Modules/Tasks/tests/Feature/TaskVisibilityAndMutationTest.php`.
+- `env APP_PACKAGES_CACHE=/tmp/taskflow-laravel-cache/packages.php APP_SERVICES_CACHE=/tmp/taskflow-laravel-cache/services.php APP_CONFIG_CACHE=/tmp/taskflow-laravel-cache/config.php APP_ROUTES_CACHE=/tmp/taskflow-laravel-cache/routes-v7.php APP_EVENTS_CACHE=/tmp/taskflow-laravel-cache/events.php VIEW_COMPILED_PATH=/tmp/taskflow-laravel-views LOG_CHANNEL=errorlog LOG_LEVEL=critical php artisan test --compact`.
+Result:
+- Syntax yoxlaması PASS oldu.
+- Focused TF-602 matrix PASS oldu: 5 test, 38 assertion. Member/outsider visibility, Web/API report və edit, manager edit/delete, Todo reporter limiti, read-only project state, Activity/Dashboard scope və soft delete audit yoxlandı.
+- Full default SQLite suite PASS oldu: 92 test, 476 assertion, failure yoxdur.
+Files/areas reviewed: TF-602 planı, Task policy/service/repository, Activity və Dashboard visibility scope-ları, Task Web/API route flow-u və focused task matrix testi.
+Remaining risk or blocker: Birbaşa `php artisan` outer bootstrap command-i hostun `nobody:nogroup` sahibliyində olan `storage/logs` və `bootstrap/cache` fayllarına yaza bilmədiyi üçün `Permission denied` verir. Testlər process-local `/tmp` cache/view env ilə real şəkildə keçdi; task-owned blocker yoxdur. Board hələ TF-607 scope-unda mövcud deyil, ona görə bu task yeni board yaratmadı.
 Reviewer: Codex
 ```
 
@@ -342,6 +359,165 @@ Remaining risk or blocker: None for TF-001. The downloaded Node distribution is 
 Reviewer: Codex
 ```
 
+```text
+Date/time: 2026-09-02 +0400
+Task ID: TF-401
+Commit/worktree state (if Git is authorized): Git əməliyyatları bu task üçün icazəli deyildi; yoxlanılmadı.
+Commands/checks:
+- `php -l Modules/Projects/app/Services/ProjectMemberService.php && php -l Modules/Projects/app/Repositories/EloquentProjectMemberRepository.php && php -l Modules/Projects/app/Http/Controllers/ProjectMemberController.php && php -l Modules/Projects/app/Http/Controllers/Api/V1/ProjectMemberController.php && php -l Modules/Projects/tests/Feature/ProjectMemberIntegrityTest.php`.
+- `php artisan test --compact Modules/Projects/tests/Feature/ProjectMemberIntegrityTest.php`.
+- `php artisan test --compact Modules/Projects/tests`.
+- `php artisan test --compact tests/Architecture/ControllerBoundaryGuardTest.php`.
+- `php artisan route:list --path=api/v1/projects --json | rg 'projects/.+members|projects.members'`.
+- `php artisan route:list --path=api/v1 --json | rg -o '"name":"[^"]+"' | sort | uniq -d`.
+- `php artisan test --compact`.
+Result:
+- Dəyişdirilən PHP source və focused test fayllarında syntax xətası yoxdur.
+- Focused TF-401 integrity suite PASS oldu: 7 test, 27 assertion. Duplicate, owner, context-manager, outsider, open-assignment conflict/rollback, Completed/Archived və active-user scope halları yoxlandı.
+- Bütün Projects suite PASS oldu: 12 test, 46 assertion. Architecture guard PASS oldu: 2 test, 2 assertion.
+- Route inventory `api.v1.projects.members.update` daxil olmaqla member GET/POST/PATCH/DELETE route-larının module controller, `/api/v1`, Sanctum ability və expected middleware-lərlə qeyd olunduğunu göstərdi. Duplicate API route-name command-i boş output verdi.
+- Full default SQLite suite PASS oldu: 51 test, 230 assertion, failure yoxdur.
+Files/areas reviewed: ProjectMember service/repository/model query scope, Project policy/controller route adapter-ləri, Project/Task model status və assignment sahələri, API conflict contract, Activity recorder və Project module feature tests.
+Remaining risk or blocker: Task watcher persistence/pivot schema-sı TF-606-da yaradılacaq. Bu schema-da watcher record-u mövcud olmadığı üçün TF-401 remove transaction-u silinəcək watcher sətri tapmır; future TF-606 həmin established membership removal service sərhədinə real cleanup-u əlavə etməlidir. TF-401 üçün task-owned blocker yoxdur.
+Reviewer: Codex
+```
+
+```text
+Date/time: 2026-09-02 +0400
+Task ID: TF-402
+Commit/worktree state (if Git is authorized): Git əməliyyatları bu task üçün icazəli deyildi; yoxlanılmadı.
+Commands/checks:
+- `php -l Modules/Projects/app/Http/Requests/ProjectIndexRequest.php && php -l Modules/Projects/app/Models/Project.php && php -l Modules/Projects/app/Repositories/ProjectRepository.php && php -l Modules/Projects/app/Repositories/EloquentProjectRepository.php && php -l Modules/Projects/app/Http/Controllers/ProjectController.php && php -l Modules/Projects/app/Http/Controllers/Api/V1/ProjectController.php && php -l Modules/Projects/app/Http/Controllers/Api/V1/ProjectMemberController.php`.
+- `php artisan test --compact Modules/Projects/tests/Feature/ProjectPresentationTest.php`.
+- `php artisan test --compact Modules/Projects/tests`.
+- `php artisan test --compact tests/Architecture/ControllerBoundaryGuardTest.php`.
+- `php artisan route:list --path=api/v1/projects --json | rg -o '"name":"[^"]+"' | sort | uniq -d`.
+- `php artisan route:list --path=api/v1/projects --json`.
+- `php artisan test --compact`.
+Result:
+- Dəyişdirilən PHP source fayllarında syntax xətası yoxdur.
+- Focused TF-402 presentation suite PASS oldu: 6 test, 48 assertion. Web list/detail, filter validation, API Resource/status, member endpoint, policy/ability və obsolete route ssenariləri yoxlandı.
+- Bütün Projects suite PASS oldu: 18 test, 94 assertion. Controller architecture guard PASS oldu: 2 test, 2 assertion.
+- Route inventory canonical `/api/v1/projects` və nested member endpoint-lərinin module owner, Sanctum/active-user/throttle middleware və `projects:read`/`projects:write` ability-ləri ilə qeyd olunduğunu göstərdi. Duplicate route-name command-i boş output verdi; legacy activate/archive API route-ları yoxdur.
+- Full default SQLite suite PASS oldu: 57 test, 278 assertion, failure yoxdur.
+Files/areas reviewed: Project Web/API controller adapter-ləri, request validation, Project repository actor scope/eager counts, Project/Member Resources, Web form/list/detail/member Blade presentation, route contract, Project policy, API conventions və manual browser checklist.
+Remaining risk or blocker: Responsive/manual browser davranışı TF-1003 final gate-də real browser/viewport evidence-i ilə icra ediləcək; checklist hazırdır, lakin bu taskda browser automation və manual PASS run icazəli deyildi. TF-402 üçün task-owned blocker yoxdur.
+Reviewer: Codex
+```
+
+```text
+Date/time: 2026-09-02 +0400
+Task ID: TF-500
+Commit/worktree state (if Git is authorized): Git əməliyyatları bu task üçün icazəli deyildi; yoxlanılmadı.
+Commands/checks:
+- `composer dump-autoload --no-scripts`.
+- `php -l Modules/Media/app/Providers/MediaServiceProvider.php && php -l Modules/Media/database/migrations/2026_09_02_100000_create_media_table.php && php -l Modules/Media/tests/Feature/MediaModuleTest.php`.
+- `env APP_PACKAGES_CACHE=/tmp/taskflow-laravel-cache/packages.php APP_SERVICES_CACHE=/tmp/taskflow-laravel-cache/services.php APP_CONFIG_CACHE=/tmp/taskflow-laravel-cache/config.php APP_ROUTES_CACHE=/tmp/taskflow-laravel-cache/routes-v7.php APP_EVENTS_CACHE=/tmp/taskflow-laravel-cache/events.php VIEW_COMPILED_PATH=/tmp/taskflow-laravel-views LOG_CHANNEL=errorlog php artisan test --compact Modules/Media/tests/Feature/MediaModuleTest.php`.
+- `env APP_PACKAGES_CACHE=/tmp/taskflow-laravel-cache/packages.php APP_SERVICES_CACHE=/tmp/taskflow-laravel-cache/services.php APP_CONFIG_CACHE=/tmp/taskflow-laravel-cache/config.php APP_ROUTES_CACHE=/tmp/taskflow-laravel-cache/routes-v7.php APP_EVENTS_CACHE=/tmp/taskflow-laravel-cache/events.php VIEW_COMPILED_PATH=/tmp/taskflow-laravel-views LOG_CHANNEL=errorlog php artisan test --compact tests/Feature/MigrationRollbackTest.php`.
+- `env APP_PACKAGES_CACHE=/tmp/taskflow-laravel-cache/packages.php APP_SERVICES_CACHE=/tmp/taskflow-laravel-cache/services.php APP_CONFIG_CACHE=/tmp/taskflow-laravel-cache/config.php APP_ROUTES_CACHE=/tmp/taskflow-laravel-cache/routes-v7.php APP_EVENTS_CACHE=/tmp/taskflow-laravel-cache/events.php VIEW_COMPILED_PATH=/tmp/taskflow-laravel-views LOG_CHANNEL=errorlog LOG_LEVEL=critical php artisan test --compact`.
+Result:
+- Composer optimized autoload PASS oldu: 8509 class yaradıldı; dependency install/update/remove və Composer script-i yoxdur.
+- Media provider, migration və focused test fayllarında syntax xətası yoxdur.
+- Focused Media suite PASS oldu: 5 test, 24 assertion. Module boot/binding, no-Task-authorization boundary, metadata persistence, schema unique constraint-ləri və Resource privacy yoxlandı.
+- SQLite rollback test PASS oldu: 1 test, 7 assertion. Full default SQLite suite PASS oldu: 62 test, 302 assertion, failure yoxdur.
+Files/areas reviewed: Media module manifest/provider/status, central `media` migration, model/repository/service/DTO/Resource/factory, Task inherited attachment ownership boundary, module test discovery, MEDIA.md və Media security architecture qaydaları.
+Remaining risk or blocker: Birbaşa `php artisan` outer bootstrap command-i hostun `nobody:nogroup` sahibliyində olan `storage/logs` və `bootstrap/cache` fayllarına yaza bilmədiyi üçün `Permission denied` verir. Testlər yalnız process-local `/tmp` cache/view env ilə təhlükəsiz şəkildə keçdi; bu host permission problemi TF-500 code-unun owner-i deyil. TF-500 üçün task-owned blocker yoxdur. TF-501 physical storage/streaming scope-udur.
+Reviewer: Codex
+```
+
+```text
+Date/time: 2026-09-02 +0400
+Task ID: TF-501
+Commit/worktree state (if Git is authorized): Git əməliyyatları bu task üçün icazəli deyildi; yoxlanılmadı.
+Commands/checks:
+- `php -l Modules/Media/app/Services/MediaStorageService.php && php -l Modules/Media/app/Services/MediaMetadataService.php && php -l Modules/Media/tests/Feature/MediaStorageServiceTest.php`.
+- `env APP_PACKAGES_CACHE=/tmp/taskflow-laravel-cache/packages.php APP_SERVICES_CACHE=/tmp/taskflow-laravel-cache/services.php APP_CONFIG_CACHE=/tmp/taskflow-laravel-cache/config.php APP_ROUTES_CACHE=/tmp/taskflow-laravel-cache/routes-v7.php APP_EVENTS_CACHE=/tmp/taskflow-laravel-cache/events.php VIEW_COMPILED_PATH=/tmp/taskflow-laravel-views LOG_CHANNEL=errorlog LOG_LEVEL=critical php artisan test --compact Modules/Media/tests/Feature/MediaStorageServiceTest.php`.
+- `env APP_PACKAGES_CACHE=/tmp/taskflow-laravel-cache/packages.php APP_SERVICES_CACHE=/tmp/taskflow-laravel-cache/services.php APP_CONFIG_CACHE=/tmp/taskflow-laravel-cache/config.php APP_ROUTES_CACHE=/tmp/taskflow-laravel-cache/routes-v7.php APP_EVENTS_CACHE=/tmp/taskflow-laravel-cache/events.php VIEW_COMPILED_PATH=/tmp/taskflow-laravel-views LOG_CHANNEL=errorlog LOG_LEVEL=critical php artisan test --compact Modules/Media/tests`.
+- `env APP_PACKAGES_CACHE=/tmp/taskflow-laravel-cache/packages.php APP_SERVICES_CACHE=/tmp/taskflow-laravel-cache/services.php APP_CONFIG_CACHE=/tmp/taskflow-laravel-cache/config.php APP_ROUTES_CACHE=/tmp/taskflow-laravel-cache/routes-v7.php APP_EVENTS_CACHE=/tmp/taskflow-laravel-cache/events.php VIEW_COMPILED_PATH=/tmp/taskflow-laravel-views LOG_CHANNEL=errorlog LOG_LEVEL=critical php artisan test --compact`.
+Result:
+- Dəyişdirilən PHP source və test fayllarında syntax xətası yoxdur.
+- Focused TF-501 storage suite PASS oldu: 7 test, 32 assertion. MIME spoofing, unknown/SVG type, file count/size/image dimension limitləri, DB/storage failure compensation-u, safe stream header-ləri, missing file və physical cleanup yoxlandı.
+- Bütün Media suite PASS oldu: 12 test, 56 assertion. TF-500 scaffold/privacy testləri ilə TF-501 storage davranışı birlikdə keçdi.
+- Full default SQLite suite PASS oldu: 69 test, 334 assertion, failure yoxdur.
+Files/areas reviewed: `MEDIA.md`, Media provider/config, metadata repository/service, central Media model/Resource, Laravel private `local` disk, inherited Task attachment ownership sərhədi və Media module feature testləri.
+Remaining risk or blocker: Birbaşa `php artisan` outer bootstrap command-i hostun `nobody:nogroup` sahibliyində olan `storage/logs` və `bootstrap/cache` fayllarına yaza bilmədiyi üçün `Permission denied` verir. Bütün testlər yalnız process-local `/tmp` cache/view env ilə real şəkildə keçdi; bu host permission problemi TF-501 code-unun owner-i deyil. TF-501 üçün task-owned blocker yoxdur. TF-502 Task association/migration scope-udur.
+Reviewer: Codex
+```
+
+```text
+Date/time: 2026-09-02 +0400
+Task ID: TF-502
+Commit/worktree state (if Git is authorized): Git əməliyyatları bu task üçün icazəli deyildi; yoxlanılmadı.
+Commands/checks:
+- `php -l Modules/Tasks/app/Services/TaskAttachmentService.php && php -l Modules/Tasks/app/Models/TaskAttachment.php && php -l Modules/Tasks/app/Support/TaskAttachmentMediaBackfill.php && php -l Modules/Tasks/database/migrations/2026_09_02_110000_add_media_id_to_task_attachments_table.php && php -l Modules/Tasks/tests/Feature/TaskAttachmentMediaMigrationTest.php`.
+- `env APP_PACKAGES_CACHE=/tmp/taskflow-laravel-cache/packages.php APP_SERVICES_CACHE=/tmp/taskflow-laravel-cache/services.php APP_CONFIG_CACHE=/tmp/taskflow-laravel-cache/config.php APP_ROUTES_CACHE=/tmp/taskflow-laravel-cache/routes-v7.php APP_EVENTS_CACHE=/tmp/taskflow-laravel-cache/events.php VIEW_COMPILED_PATH=/tmp/taskflow-laravel-views LOG_CHANNEL=errorlog LOG_LEVEL=critical php artisan test --compact Modules/Tasks/tests/Feature/TaskAttachmentMediaMigrationTest.php`.
+- `env APP_PACKAGES_CACHE=/tmp/taskflow-laravel-cache/packages.php APP_SERVICES_CACHE=/tmp/taskflow-laravel-cache/services.php APP_CONFIG_CACHE=/tmp/taskflow-laravel-cache/config.php APP_ROUTES_CACHE=/tmp/taskflow-laravel-cache/routes-v7.php APP_EVENTS_CACHE=/tmp/taskflow-laravel-cache/events.php VIEW_COMPILED_PATH=/tmp/taskflow-laravel-views LOG_CHANNEL=errorlog LOG_LEVEL=critical php artisan test --compact tests/Feature/MigrationRollbackTest.php`.
+- `env APP_PACKAGES_CACHE=/tmp/taskflow-laravel-cache/packages.php APP_SERVICES_CACHE=/tmp/taskflow-laravel-cache/services.php APP_CONFIG_CACHE=/tmp/taskflow-laravel-cache/config.php APP_ROUTES_CACHE=/tmp/taskflow-laravel-cache/routes-v7.php APP_EVENTS_CACHE=/tmp/taskflow-laravel-cache/events.php VIEW_COMPILED_PATH=/tmp/taskflow-laravel-views LOG_CHANNEL=errorlog LOG_LEVEL=critical php artisan test --compact Modules/Tasks/tests`.
+- `env APP_PACKAGES_CACHE=/tmp/taskflow-laravel-cache/packages.php APP_SERVICES_CACHE=/tmp/taskflow-laravel-cache/services.php APP_CONFIG_CACHE=/tmp/taskflow-laravel-cache/config.php APP_ROUTES_CACHE=/tmp/taskflow-laravel-cache/routes-v7.php APP_EVENTS_CACHE=/tmp/taskflow-laravel-cache/events.php VIEW_COMPILED_PATH=/tmp/taskflow-laravel-views LOG_CHANNEL=errorlog LOG_LEVEL=critical php artisan test --compact`.
+Result:
+- Dəyişdirilən PHP source, migration və test fayllarında syntax xətası yoxdur.
+- Focused TF-502 suite PASS oldu: 4 test, 31 assertion. Yeni association, legacy record/file backfill, authorized Media-backed download, safe Resource və deletion cleanup yoxlandı.
+- Migration rollback PASS oldu: 1 test, 7 assertion. `media_id` unique/foreign key migration-u full chain rollback-da təhlükəsiz geri alındı.
+- Bütün Tasks suite PASS oldu: 7 test, 41 assertion. Full default SQLite suite PASS oldu: 73 test, 365 assertion, failure yoxdur.
+Files/areas reviewed: canonical TF-502 plan/MEDIA migration ardıcıllığı, inherited Task attachment migration/model/repository/service/controller/Resource, Media storage service/model, attachment factory və Tasks feature tests.
+Remaining risk or blocker: Birbaşa `php artisan` outer bootstrap command-i hostun `nobody:nogroup` sahibliyində olan `storage/logs` və `bootstrap/cache` fayllarına yaza bilmədiyi üçün `Permission denied` verir. Bütün testlər process-local `/tmp` cache/view env ilə real şəkildə keçdi; bu host permission problemi TF-502 code-unun owner-i deyil. TF-502 üçün task-owned blocker yoxdur. TF-503 authorized Web/API media use case-lərinin sahibidir.
+Reviewer: Codex
+```
+
+```text
+Date/time: 2026-09-02 +0400
+Task ID: TF-503
+Commit/worktree state (if Git is authorized): Git əməliyyatları bu task üçün icazəli deyildi; yoxlanılmadı.
+Commands/checks:
+- `php -l Modules/Tasks/app/Services/TaskAttachmentService.php && php -l Modules/Tasks/app/Http/Controllers/TaskAttachmentController.php && php -l Modules/Tasks/app/Http/Controllers/Api/V1/TaskAttachmentController.php && php -l Modules/Tasks/app/Http/Requests/UploadTaskAttachmentRequest.php && php -l Modules/Tasks/tests/Feature/TaskMediaFlowTest.php`.
+- `env APP_PACKAGES_CACHE=/tmp/taskflow-laravel-cache/packages.php APP_SERVICES_CACHE=/tmp/taskflow-laravel-cache/services.php APP_CONFIG_CACHE=/tmp/taskflow-laravel-cache/config.php APP_ROUTES_CACHE=/tmp/taskflow-laravel-cache/routes-v7.php APP_EVENTS_CACHE=/tmp/taskflow-laravel-cache/events.php VIEW_COMPILED_PATH=/tmp/taskflow-laravel-views LOG_CHANNEL=errorlog LOG_LEVEL=critical php artisan test --compact Modules/Tasks/tests/Feature/TaskMediaFlowTest.php`.
+- `env APP_PACKAGES_CACHE=/tmp/taskflow-laravel-cache/packages.php APP_SERVICES_CACHE=/tmp/taskflow-laravel-cache/services.php APP_CONFIG_CACHE=/tmp/taskflow-laravel-cache/config.php APP_ROUTES_CACHE=/tmp/taskflow-laravel-cache/routes-v7.php APP_EVENTS_CACHE=/tmp/taskflow-laravel-cache/events.php VIEW_COMPILED_PATH=/tmp/taskflow-laravel-views LOG_CHANNEL=errorlog LOG_LEVEL=critical php artisan test --compact`.
+Result:
+- Dəyişdirilən PHP source və test fayllarında syntax xətası yoxdur.
+- Focused TF-503 suite PASS oldu: 6 test, 33 assertion. Beşlik upload, invalid batch compensation, nested tampering 404, member/outsider/uploader/manager matrix-i, Completed/Archived read-only və preview/download yoxlandı.
+- Full default SQLite suite PASS oldu: 79 test, 398 assertion, failure yoxdur.
+Files/areas reviewed: TF-503/API media contract, Task attachment service/model/repository/resource/controller/request/policy/routes/Blade view, Media storage service və Task media focused testləri.
+Remaining risk or blocker: Birbaşa `php artisan` outer bootstrap command-i hostun `nobody:nogroup` sahibliyində olan `storage/logs` və `bootstrap/cache` fayllarına yaza bilmədiyi üçün `Permission denied` verir. Bütün testlər process-local `/tmp` cache/view env ilə real şəkildə keçdi; bu host permission problemi TF-503 code-unun owner-i deyil. TF-503 üçün task-owned blocker yoxdur. TF-103 final verification-u canonical owner taskları tamamlandıqdan sonra ayrıca aparılacaq.
+Reviewer: Codex
+```
+
+```text
+Date/time: 2026-09-02 +0400
+Task ID: TF-600
+Commit/worktree state (if Git is authorized): Git əməliyyatları bu task üçün icazəli deyildi; yoxlanılmadı.
+Commands/checks:
+- `php -l Modules/Projects/app/Data/AllocatedIssueNumberData.php && php -l Modules/Projects/app/Services/ProjectService.php && php -l Modules/Tasks/app/Support/TaskDisplayNumberBackfill.php && php -l Modules/Tasks/database/migrations/2026_09_02_120000_add_issue_numbers_to_tasks_table.php && php -l Modules/Tasks/tests/Feature/ProjectLocalIssueAllocationTest.php`.
+- `env APP_PACKAGES_CACHE=/tmp/taskflow-laravel-cache/packages.php APP_SERVICES_CACHE=/tmp/taskflow-laravel-cache/services.php APP_CONFIG_CACHE=/tmp/taskflow-laravel-cache/config.php APP_ROUTES_CACHE=/tmp/taskflow-laravel-cache/routes-v7.php APP_EVENTS_CACHE=/tmp/taskflow-laravel-cache/events.php VIEW_COMPILED_PATH=/tmp/taskflow-laravel-views LOG_CHANNEL=errorlog LOG_LEVEL=critical php artisan test --compact Modules/Tasks/tests/Feature/ProjectLocalIssueAllocationTest.php`.
+- `env APP_PACKAGES_CACHE=/tmp/taskflow-laravel-cache/packages.php APP_SERVICES_CACHE=/tmp/taskflow-laravel-cache/services.php APP_CONFIG_CACHE=/tmp/taskflow-laravel-cache/config.php APP_ROUTES_CACHE=/tmp/taskflow-laravel-cache/routes-v7.php APP_EVENTS_CACHE=/tmp/taskflow-laravel-cache/events.php VIEW_COMPILED_PATH=/tmp/taskflow-laravel-views LOG_CHANNEL=errorlog LOG_LEVEL=critical php artisan test --compact Modules/Projects/tests/Feature/ProjectLifecycleAndKeyTest.php`.
+- `env APP_PACKAGES_CACHE=/tmp/taskflow-laravel-cache/packages.php APP_SERVICES_CACHE=/tmp/taskflow-laravel-cache/services.php APP_CONFIG_CACHE=/tmp/taskflow-laravel-cache/config.php APP_ROUTES_CACHE=/tmp/taskflow-laravel-cache/routes-v7.php APP_EVENTS_CACHE=/tmp/taskflow-laravel-cache/events.php VIEW_COMPILED_PATH=/tmp/taskflow-laravel-views LOG_CHANNEL=errorlog LOG_LEVEL=critical php artisan test --compact tests/Feature/MigrationRollbackTest.php`.
+- `env APP_PACKAGES_CACHE=/tmp/taskflow-laravel-cache/packages.php APP_SERVICES_CACHE=/tmp/taskflow-laravel-cache/services.php APP_CONFIG_CACHE=/tmp/taskflow-laravel-cache/config.php APP_ROUTES_CACHE=/tmp/taskflow-laravel-cache/routes-v7.php APP_EVENTS_CACHE=/tmp/taskflow-laravel-cache/events.php VIEW_COMPILED_PATH=/tmp/taskflow-laravel-views LOG_CHANNEL=errorlog LOG_LEVEL=critical php artisan test --compact`.
+Result:
+- Dəyişdirilən source, migration və test fayllarında syntax xətası yoxdur.
+- Focused TF-600 suite PASS oldu: 4 test, 19 assertion. Local sequence, iki project-də sequence 1, unique/non-null constraint, rollback və deterministic inherited backfill/report yoxlandı.
+- Projects lifecycle suite PASS oldu: 5 test, 19 assertion. Migration rollback PASS oldu: 1 test, 7 assertion.
+- Full default SQLite suite PASS oldu: 83 test, 417 assertion, failure yoxdur.
+Files/areas reviewed: TF-600 plan, Task schema/model/factory/resource/repository/service, Project sequence allocator/repository behavior, inherited task number migration və directly related feature tests.
+Remaining risk or blocker: Birbaşa `php artisan` outer bootstrap command-i hostun `nobody:nogroup` sahibliyində olan `storage/logs` və `bootstrap/cache` fayllarına yaza bilmədiyi üçün `Permission denied` verir. Bütün testlər process-local `/tmp` cache/view env ilə real şəkildə keçdi; bu host permission problemi TF-600 code-unun owner-i deyil. TF-600 üçün task-owned blocker yoxdur. TF-601 task type/subtask scope-udur.
+Reviewer: Codex
+```
+
+```text
+Date/time: 2026-09-02 +0400
+Task ID: TF-601
+Commit/worktree state (if Git is authorized): Git əməliyyatları bu task üçün icazəli deyildi; yoxlanılmadı.
+Commands/checks:
+- `php -l Modules/Tasks/app/Enums/TaskType.php && php -l Modules/Tasks/app/Services/TaskService.php && php -l Modules/Tasks/app/Services/TaskStatusService.php && php -l Modules/Tasks/database/migrations/2026_09_02_130000_add_type_and_parent_to_tasks_table.php && php -l Modules/Tasks/tests/Feature/TaskTypeAndSubtaskTest.php`.
+- `env APP_PACKAGES_CACHE=/tmp/taskflow-laravel-cache/packages.php APP_SERVICES_CACHE=/tmp/taskflow-laravel-cache/services.php APP_CONFIG_CACHE=/tmp/taskflow-laravel-cache/config.php APP_ROUTES_CACHE=/tmp/taskflow-laravel-cache/routes-v7.php APP_EVENTS_CACHE=/tmp/taskflow-laravel-cache/events.php VIEW_COMPILED_PATH=/tmp/taskflow-laravel-views LOG_CHANNEL=errorlog LOG_LEVEL=critical php artisan test --compact Modules/Tasks/tests/Feature/TaskTypeAndSubtaskTest.php`.
+- `env APP_PACKAGES_CACHE=/tmp/taskflow-laravel-cache/packages.php APP_SERVICES_CACHE=/tmp/taskflow-laravel-cache/services.php APP_CONFIG_CACHE=/tmp/taskflow-laravel-cache/config.php APP_ROUTES_CACHE=/tmp/taskflow-laravel-cache/routes-v7.php APP_EVENTS_CACHE=/tmp/taskflow-laravel-cache/events.php VIEW_COMPILED_PATH=/tmp/taskflow-laravel-views LOG_CHANNEL=errorlog LOG_LEVEL=critical php artisan test --compact`.
+Result:
+- Dəyişdirilən source, migration və test fayllarında syntax xətası yoxdur.
+- Focused TF-601 suite PASS oldu: 4 test, 21 assertion. Type create/update/API/Web, cross-project/missing/nested parent, type invalidation, fərqli assignee və parent completion conflict yoxlandı.
+- Full default SQLite suite PASS oldu: 87 test, 438 assertion, failure yoxdur.
+Files/areas reviewed: TF-601 plan, Task DTO/model/schema/repository/service/status service/request/Resource/controller/Blade view, existing Task feature tests və API task contract.
+Remaining risk or blocker: Birbaşa `php artisan` outer bootstrap command-i hostun `nobody:nogroup` sahibliyində olan `storage/logs` və `bootstrap/cache` fayllarına yaza bilmədiyi üçün `Permission denied` verir. Bütün testlər process-local `/tmp` cache/view env ilə real şəkildə keçdi; bu host permission problemi TF-601 code-unun owner-i deyil. TF-601 üçün task-owned blocker yoxdur. TF-602 visibility/report/edit/delete scope-udur.
+Reviewer: Codex
+```
+
 ## Known pre-implementation unknowns
 
 - Delivered source has lock files but no installed `vendor`/`node_modules`; TF-001 must verify the runtime rather than assuming it.
@@ -356,3 +532,20 @@ Do not mark TF-000 verified until the target repository contains the full canoni
 
 - `docs/V1_HANDOFF.md`
 - `docs/LEARNING_GUIDE.md`
+
+```text
+Date/time: 2026-09-02 +0400
+Task ID: TF-603
+Commit/worktree state (if Git is authorized): Git əməliyyatları bu task üçün icazəli deyildi; yoxlanılmadı.
+Commands/checks:
+- `php -l Modules/Tasks/app/Repositories/TaskWatcherRepository.php && php -l Modules/Tasks/app/Repositories/EloquentTaskWatcherRepository.php && php -l Modules/Tasks/app/Models/Task.php && php -l Modules/Tasks/app/Providers/TasksServiceProvider.php && php -l Modules/Tasks/app/Services/TaskAssignmentService.php && php -l app/Notifications/TaskAssignedNotification.php && php -l Modules/Tasks/database/migrations/2026_09_02_140000_create_task_watchers_table.php && php -l database/migrations/2026_09_02_140100_create_notifications_table.php && php -l Modules/Tasks/tests/Feature/TaskAssignmentRulesTest.php`.
+- `env APP_PACKAGES_CACHE=/tmp/taskflow-laravel-cache/packages.php APP_SERVICES_CACHE=/tmp/taskflow-laravel-cache/services.php APP_CONFIG_CACHE=/tmp/taskflow-laravel-cache/config.php APP_ROUTES_CACHE=/tmp/taskflow-laravel-cache/routes-v7.php APP_EVENTS_CACHE=/tmp/taskflow-laravel-cache/events.php VIEW_COMPILED_PATH=/tmp/taskflow-laravel-views LOG_CHANNEL=errorlog LOG_LEVEL=critical php artisan test --compact Modules/Tasks/tests/Feature/TaskAssignmentRulesTest.php tests/Feature/MigrationRollbackTest.php`.
+- `env APP_PACKAGES_CACHE=/tmp/taskflow-laravel-cache/packages.php APP_SERVICES_CACHE=/tmp/taskflow-laravel-cache/services.php APP_CONFIG_CACHE=/tmp/taskflow-laravel-cache/config.php APP_ROUTES_CACHE=/tmp/taskflow-laravel-cache/routes-v7.php APP_EVENTS_CACHE=/tmp/taskflow-laravel-cache/events.php VIEW_COMPILED_PATH=/tmp/taskflow-laravel-views LOG_CHANNEL=errorlog LOG_LEVEL=critical php artisan test --compact`.
+Result:
+- Syntax yoxlaması PASS oldu.
+- Focused assignment + rollback run PASS oldu: 6 test, 30 assertion. Web/API self/manager assignment, foreign/removed/suspended/read-only denial, no-op notification de-duplication, auto-watch, unassign və migration rollback yoxlandı.
+- Full default SQLite suite PASS oldu: 97 test, 499 assertion, failure yoxdur.
+Files/areas reviewed: TF-603 planı, Task assignment policy/service/controllers, Task watcher repository/model/provider, host database notification və directly related feature/migration testləri.
+Remaining risk or blocker: Birbaşa `php artisan` outer bootstrap command-i hostun `nobody:nogroup` sahibliyində olan `storage/logs` və `bootstrap/cache` fayllarına yaza bilmədiyi üçün `Permission denied` verir. Testlər process-local `/tmp` cache/view env ilə real şəkildə keçdi; task-owned blocker yoxdur. TF-606 watcher management, comment/status notification recipient-ləri və notification inbox presentation scope-unu genişləndirəcək.
+Reviewer: Codex
+```

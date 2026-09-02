@@ -5,6 +5,8 @@ namespace Modules\Tasks\Http\Controllers\Api\V1;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Validation\ValidationException;
+use Modules\Media\Exceptions\MediaUploadValidationException;
 use Modules\Tasks\Http\Requests\Api\V1\TaskAttachmentIndexRequest;
 use Modules\Tasks\Http\Requests\UploadTaskAttachmentRequest;
 use Modules\Tasks\Http\Resources\TaskAttachmentResource;
@@ -35,13 +37,19 @@ class TaskAttachmentController
     {
         $this->authorize('uploadAttachment', $task);
 
-        $attachment = $this->attachmentService->upload(
-            $task->load('project'),
-            $request->user(),
-            $request->file('attachment'),
-        );
+        try {
+            $attachments = $this->attachmentService->uploadMany(
+                $task->load('project'),
+                $request->user(),
+                $request->file('media'),
+            );
+        } catch (MediaUploadValidationException $exception) {
+            throw ValidationException::withMessages(['media' => [$exception->getMessage()]]);
+        }
 
-        return (new TaskAttachmentResource($attachment->load('uploader')))->response()->setStatusCode(201);
+        return TaskAttachmentResource::collection(collect($attachments)->each->load('uploader', 'media'))
+            ->response()
+            ->setStatusCode(201);
     }
 
     public function download(Task $task, TaskAttachment $attachment)
@@ -50,6 +58,14 @@ class TaskAttachmentController
         $this->authorize('view', $task);
 
         return $this->attachmentService->download($attachment);
+    }
+
+    public function preview(Task $task, TaskAttachment $attachment)
+    {
+        abort_unless($attachment->task_id === $task->id, 404);
+        $this->authorize('view', $task);
+
+        return $this->attachmentService->preview($attachment);
     }
 
     public function destroy(Task $task, TaskAttachment $attachment): JsonResponse

@@ -11,6 +11,7 @@ use Modules\Projects\Enums\ProjectMemberRole;
 use Modules\Projects\Http\Requests\StoreProjectMemberRequest;
 use Modules\Projects\Http\Requests\UpdateProjectMemberRequest;
 use Modules\Projects\Data\UpdateProjectMemberData;
+use Modules\Projects\Exceptions\MemberHasOpenAssignments;
 use Modules\Projects\Models\Project;
 use Modules\Projects\Services\ProjectMemberService;
 
@@ -50,7 +51,13 @@ class ProjectMemberController
     {
         $this->authorize('manageMembers', $project);
 
-        $this->members->removeMember($project, $user, request()->user());
+        try {
+            $this->members->removeMember($project, $user, request()->user());
+        } catch (MemberHasOpenAssignments $exception) {
+            return back()->withErrors([
+                'user_id' => "This member has {$exception->count} open assignment(s). Reassign or unassign them before removal.",
+            ]);
+        }
 
         return back()->with('success', 'Project member removed.');
     }

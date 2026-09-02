@@ -16,6 +16,7 @@ class ProjectMemberResource extends JsonResource
             'user' => $this->whenLoaded('user', fn (): array => [
                 'id' => $this->user->id,
                 'name' => $this->user->name,
+                'email' => $this->user->email,
             ]),
             'member_role' => $this->member_role->value,
             'joined_at' => $this->joined_at?->toISOString(),

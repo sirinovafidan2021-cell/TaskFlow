@@ -13,14 +13,16 @@ class TaskAttachmentResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'original_name' => $this->original_name,
-            'mime_type' => $this->mime_type,
-            'size' => $this->size,
+            'media_uuid' => $this->media?->uuid,
+            'original_name' => $this->media?->original_name,
+            'mime_type' => $this->media?->mime_type,
+            'size' => $this->media?->size,
             'uploaded_by' => $this->whenLoaded('uploader', fn (): array => [
                 'id' => $this->uploader->id,
                 'name' => $this->uploader->name,
             ]),
-            'download_url' => route('api.v1.tasks.attachments.download', [$this->task_id, $this->id]),
+            'preview_url' => route('api.v1.tasks.media.preview', [$this->task_id, $this->id]),
+            'download_url' => route('api.v1.tasks.media.download', [$this->task_id, $this->id]),
             'created_at' => $this->created_at?->toISOString(),
         ];
     }

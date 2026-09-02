@@ -17,7 +17,8 @@ Route::middleware(['web', 'auth', 'active-user'])->group(function (): void {
     Route::patch('/tasks/{task}/status', [TaskController::class, 'changeStatus'])->name('tasks.status');
     Route::post('/tasks/{task}/comments', [TaskCommentController::class, 'store'])->name('tasks.comments.store');
     Route::delete('/tasks/{task}/comments/{comment}', [TaskCommentController::class, 'destroy'])->name('tasks.comments.destroy');
-    Route::post('/tasks/{task}/attachments', [TaskAttachmentController::class, 'store'])->name('tasks.attachments.store');
-    Route::get('/tasks/{task}/attachments/{attachment}/download', [TaskAttachmentController::class, 'download'])->name('tasks.attachments.download');
-    Route::delete('/tasks/{task}/attachments/{attachment}', [TaskAttachmentController::class, 'destroy'])->name('tasks.attachments.destroy');
+    Route::post('/tasks/{task}/media', [TaskAttachmentController::class, 'store'])->name('tasks.media.store');
+    Route::get('/tasks/{task}/media/{attachment}/preview', [TaskAttachmentController::class, 'preview'])->name('tasks.media.preview');
+    Route::get('/tasks/{task}/media/{attachment}/download', [TaskAttachmentController::class, 'download'])->name('tasks.media.download');
+    Route::delete('/tasks/{task}/media/{attachment}', [TaskAttachmentController::class, 'destroy'])->name('tasks.media.destroy');
 });

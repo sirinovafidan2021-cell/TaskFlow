@@ -15,31 +15,46 @@ class EloquentProjectRepository implements ProjectRepository
     public function findOrFail(int $id): Project { return Project::query()->findOrFail($id); }
     public function paginateFor(User $user, ProjectFiltersData $filters, int $perPage = 12): LengthAwarePaginator
     {
-        return $this->baseQuery($filters->search, $filters->status)
-            ->when(! $user->hasRole(UserRole::Admin->value), function ($query) use ($user): void {
-                $query->where(function ($query) use ($user): void {
-                    $query->where('owner_id', $user->id)
-                        ->orWhereHas('members', fn ($members) => $members->whereKey($user->id));
-                });
-            })
+        return $this->visibleTo($this->baseQuery($filters->search, $filters->status), $user)
             ->latest()
             ->paginate($perPage)
             ->withQueryString();
+    }
+
+    public function detailFor(User $user, Project $project): Project
+    {
+        return $this->visibleTo($this->baseQuery(null, null), $user)
+            ->whereKey($project->id)
+            ->firstOrFail();
     }
 
     private function baseQuery(?string $search, ?string $status)
     {
         return Project::query()
             ->with('owner')
+            ->withCount(['memberships', 'tasks'])
             ->when(filled($search), function ($query) use ($search): void {
                 $query->where(function ($query) use ($search): void {
                     $query->where('name', 'like', "%{$search}%")
+                        ->orWhere('key', 'like', "%{$search}%")
                         ->orWhere('description', 'like', "%{$search}%");
                 });
             })
             ->when(ProjectStatus::tryFrom((string) $status), function ($query, ProjectStatus $projectStatus): void {
                 $query->where('status', $projectStatus->value);
             });
+    }
+
+    private function visibleTo($query, User $user)
+    {
+        if ($user->hasRole(UserRole::Admin->value)) {
+            return $query;
+        }
+
+        return $query->where(function ($query) use ($user): void {
+            $query->where('owner_id', $user->id)
+                ->orWhereHas('members', fn ($members) => $members->whereKey($user->id));
+        });
     }
 
     public function save(Project $project): Project

@@ -3,22 +3,35 @@
 namespace Modules\Tasks\Services;
 
 use App\Models\User;
+use App\Notifications\TaskAssignedNotification;
 use Illuminate\Support\Facades\DB;
 use LogicException;
 use Modules\Activity\Services\ActivityRecorder;
+use Modules\Projects\Enums\ProjectStatus;
 use Modules\Projects\Services\ProjectMemberService;
 use Modules\Tasks\Models\Task;
 use Modules\Tasks\Repositories\TaskRepository;
+use Modules\Tasks\Repositories\TaskWatcherRepository;
 
 class TaskAssignmentService
 {
-    public function __construct(private readonly TaskRepository $tasks, private readonly ProjectMemberService $members, private readonly ActivityRecorder $activity) {}
+    public function __construct(private readonly TaskRepository $tasks, private readonly ProjectMemberService $members, private readonly ActivityRecorder $activity, private readonly TaskWatcherRepository $watchers) {}
 
     public function assign(Task $task, ?User $assignee, User $actor): Task
     {
         return DB::transaction(function () use ($task, $assignee, $actor): Task {
-            if ($assignee && ! $this->members->isMember($task->project, $assignee)) {
-                throw new LogicException('The assignee must belong to the project.');
+            if ($task->project->status !== ProjectStatus::Active) {
+                throw new LogicException('Tasks can only be assigned in active projects.');
+            }
+            if (! $actor->isActive()) {
+                throw new LogicException('Suspended users cannot change task assignment.');
+            }
+            if (! $this->members->canManage($task->project, $actor)
+                && ($assignee?->id !== $actor->id || ! $this->members->isMember($task->project, $actor))) {
+                throw new LogicException('Project members can only assign themselves.');
+            }
+            if ($assignee && (! $assignee->isActive() || ! $this->members->isMember($task->project, $assignee))) {
+                throw new LogicException('The assignee must be an active project member.');
             }
             $oldAssignee = $task->assignee;
             if ($oldAssignee?->id === $assignee?->id) {
@@ -26,7 +39,22 @@ class TaskAssignmentService
             }
             $task->assignee()->associate($assignee);
             $task = $this->tasks->save($task);
-            $this->activity->record('task.assigned', $actor, $task, ['project_id' => $task->project_id, 'task_id' => $task->id, 'old_assignee_id' => $oldAssignee?->id, 'old_assignee_name' => $oldAssignee?->name ?: $oldAssignee?->email, 'new_assignee_id' => $assignee?->id, 'new_assignee_name' => $assignee?->name ?: $assignee?->email]);
+            if ($assignee !== null) {
+                $this->watchers->ensureWatching($task, $assignee);
+                if ($assignee->id !== $actor->id) {
+                    $assignee->notify(new TaskAssignedNotification($task, $actor));
+                }
+            }
+            $this->activity->record('task.assigned', $actor, $task, [
+                'project_id' => $task->project_id,
+                'task_id' => $task->id,
+                'old_assignee_id' => $oldAssignee?->id,
+                'old_assignee_name' => $oldAssignee?->name ?: $oldAssignee?->email,
+                'new_assignee_id' => $assignee?->id,
+                'new_assignee_name' => $assignee?->name ?: $assignee?->email,
+                'old' => ['assignee_id' => $oldAssignee?->id, 'assignee_name' => $oldAssignee?->name ?: $oldAssignee?->email],
+                'new' => ['assignee_id' => $assignee?->id, 'assignee_name' => $assignee?->name ?: $assignee?->email],
+            ]);
 
             return $task;
         });

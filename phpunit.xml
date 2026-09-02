@@ -16,12 +16,14 @@
             <directory>Modules/Tasks/tests/Unit</directory>
             <directory>Modules/Activity/tests/Unit</directory>
             <directory>Modules/Dashboard/tests/Unit</directory>
+            <directory>Modules/Media/tests/Unit</directory>
         </testsuite>
         <testsuite name="Module Feature">
             <directory>Modules/Projects/tests/Feature</directory>
             <directory>Modules/Tasks/tests/Feature</directory>
             <directory>Modules/Activity/tests/Feature</directory>
             <directory>Modules/Dashboard/tests/Feature</directory>
+            <directory>Modules/Media/tests/Feature</directory>
         </testsuite>
     </testsuites>
     <source>
@@ -46,6 +48,13 @@
         <env name="QUEUE_CONNECTION" value="sync" force="true"/>
         <env name="SESSION_DRIVER" value="array" force="true"/>
         <env name="LARAVEL_STORAGE_PATH" value="/tmp/taskflow-testing-storage" force="true"/>
+        <env name="APP_PACKAGES_CACHE" value="/tmp/taskflow-testing-packages.php" force="true"/>
+        <env name="APP_SERVICES_CACHE" value="/tmp/taskflow-testing-services.php" force="true"/>
+        <env name="APP_CONFIG_CACHE" value="/tmp/taskflow-testing-config.php" force="true"/>
+        <env name="APP_ROUTES_CACHE" value="/tmp/taskflow-testing-routes.php" force="true"/>
+        <env name="APP_EVENTS_CACHE" value="/tmp/taskflow-testing-events.php" force="true"/>
+        <env name="VIEW_COMPILED_PATH" value="/tmp" force="true"/>
+        <env name="LOG_CHANNEL" value="errorlog" force="true"/>
         <env name="PULSE_ENABLED" value="false" force="true"/>
         <env name="TELESCOPE_ENABLED" value="false" force="true"/>
         <env name="NIGHTWATCH_ENABLED" value="false" force="true"/>

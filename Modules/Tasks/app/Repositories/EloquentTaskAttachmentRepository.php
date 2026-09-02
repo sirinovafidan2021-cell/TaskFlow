@@ -11,12 +11,12 @@ class EloquentTaskAttachmentRepository implements TaskAttachmentRepository
 {
     public function forTask(Task $task): Collection
     {
-        return TaskAttachment::query()->with('uploader')->where('task_id', $task->id)->latest()->get();
+        return TaskAttachment::query()->with(['uploader', 'media'])->where('task_id', $task->id)->latest()->get();
     }
 
     public function paginateForTask(Task $task, int $perPage): LengthAwarePaginator
     {
-        return TaskAttachment::query()->with('uploader')->where('task_id', $task->id)->latest()->paginate($perPage)->withQueryString();
+        return TaskAttachment::query()->with(['uploader', 'media'])->where('task_id', $task->id)->latest()->paginate($perPage)->withQueryString();
     }
 
     public function save(TaskAttachment $attachment): TaskAttachment

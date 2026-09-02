@@ -12,6 +12,8 @@ use Modules\Tasks\Repositories\EloquentTaskRepository;
 use Modules\Tasks\Repositories\TaskAttachmentRepository;
 use Modules\Tasks\Repositories\TaskCommentRepository;
 use Modules\Tasks\Repositories\TaskRepository;
+use Modules\Tasks\Repositories\TaskWatcherRepository;
+use Modules\Tasks\Repositories\EloquentTaskWatcherRepository;
 
 class TasksServiceProvider extends ServiceProvider
 {
@@ -20,6 +22,7 @@ class TasksServiceProvider extends ServiceProvider
         $this->app->bind(TaskRepository::class, EloquentTaskRepository::class);
         $this->app->bind(TaskCommentRepository::class, EloquentTaskCommentRepository::class);
         $this->app->bind(TaskAttachmentRepository::class, EloquentTaskAttachmentRepository::class);
+        $this->app->bind(TaskWatcherRepository::class, EloquentTaskWatcherRepository::class);
     }
 
     public function boot(): void

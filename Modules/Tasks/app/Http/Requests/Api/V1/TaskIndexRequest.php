@@ -6,6 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Modules\Tasks\Enums\TaskPriority;
 use Modules\Tasks\Enums\TaskStatus;
+use Modules\Tasks\Enums\TaskType;
 
 class TaskIndexRequest extends FormRequest
 {
@@ -19,6 +20,7 @@ class TaskIndexRequest extends FormRequest
         return [
             'search' => ['nullable', 'string', 'max:180'],
             'status' => ['nullable', Rule::enum(TaskStatus::class)],
+            'type' => ['nullable', Rule::enum(TaskType::class)],
             'priority' => ['nullable', Rule::enum(TaskPriority::class)],
             'project_id' => ['nullable', 'integer', 'exists:projects,id'],
             'assignee_id' => ['nullable', 'integer', 'exists:users,id'],

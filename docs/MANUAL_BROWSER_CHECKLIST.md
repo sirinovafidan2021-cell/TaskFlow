@@ -27,6 +27,9 @@ Test at desktop and narrow/mobile widths. Use at least: active admin, project ma
 - [ ] Removing a member with open responsibility is blocked or reconciled exactly as specified; no orphan assignee/watcher remains.
 - [ ] A global member with project-manager context receives the intended project permissions consistently.
 - [ ] Non-members cannot discover the project or its issues through list, direct URL, count, activity, dashboard, or Media URL.
+- [ ] Project siyahısında key üzrə axtarış, status filter-i, pagination və boş nəticə vəziyyəti həm desktop cədvəlində, həm də narrow/mobile kart görünüşündə başa düşüləndir.
+- [ ] Project detail səhifəsi key, lifecycle statusu, owner, member/task sayları və yalnız səlahiyyətli istifadəçiyə latest activity/actions göstərir; create/edit/member form-larında 422 validation error-ları daxil edilmiş təhlükəsiz dəyərləri saxlayır.
+- [ ] `/api/v1/projects` və nested member endpoint-ləri named route, Sanctum ability, policy və Resource envelope contract-larını saxlayır; köhnə `/activate` və `/archive` API alias-ları yoxdur.
 
 ## Work-item core
 

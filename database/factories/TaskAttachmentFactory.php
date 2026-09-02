@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\Tasks\Models\Task;
 use Modules\Tasks\Models\TaskAttachment;
+use Modules\Media\Models\Media;
 
 /** @extends Factory<TaskAttachment> */
 class TaskAttachmentFactory extends Factory
@@ -18,6 +19,7 @@ class TaskAttachmentFactory extends Factory
         return [
             'task_id' => Task::factory(),
             'uploaded_by' => User::factory(),
+            'media_id' => Media::factory(),
             'disk' => 'local',
             'path' => 'testing/'.Str::uuid().'.txt',
             'original_name' => 'notes.txt',

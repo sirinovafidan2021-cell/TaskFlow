@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Modules\Projects\Models\Project;
 use Modules\Tasks\Enums\TaskPriority;
 use Modules\Tasks\Enums\TaskStatus;
+use Modules\Tasks\Enums\TaskType;
 use Modules\Tasks\Models\Task;
 
 /** @extends Factory<Task> */
@@ -18,6 +19,9 @@ class TaskFactory extends Factory
     {
         return [
             'number' => fake()->unique()->numerify('TSK-######'),
+            'issue_number' => fake()->unique()->numberBetween(1, 999999),
+            'type' => TaskType::Task,
+            'parent_id' => null,
             'project_id' => Project::factory(),
             'creator_id' => User::factory(),
             'assignee_id' => null,

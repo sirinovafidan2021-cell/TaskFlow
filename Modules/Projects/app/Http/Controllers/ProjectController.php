@@ -4,7 +4,6 @@ namespace Modules\Projects\Http\Controllers;
 
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Modules\Activity\Services\ActivityQueryService;
 use Modules\Projects\Data\CreateProjectData;
@@ -13,6 +12,7 @@ use Modules\Projects\Data\ProjectFiltersData;
 use Modules\Projects\Data\ChangeProjectStatusData;
 use Modules\Projects\Enums\ProjectStatus;
 use Modules\Projects\Http\Requests\StoreProjectRequest;
+use Modules\Projects\Http\Requests\ProjectIndexRequest;
 use Modules\Projects\Http\Requests\UpdateProjectRequest;
 use Modules\Projects\Http\Requests\ChangeProjectStatusRequest;
 use Modules\Projects\Models\Project;
@@ -30,14 +30,14 @@ class ProjectController
         private readonly ActivityQueryService $activity,
     ) {}
 
-    public function index(Request $request): View
+    public function index(ProjectIndexRequest $request): View
     {
         $this->authorize('viewAny', Project::class);
 
         return view('projects::index', [
             'projects' => $this->projects->paginateFor(
                 $request->user(),
-                ProjectFiltersData::fromArray($request->only(['q', 'status'])),
+                ProjectFiltersData::fromArray($request->validated()),
             ),
             'statuses' => ProjectStatus::cases(),
         ]);
@@ -66,10 +66,11 @@ class ProjectController
     public function show(Project $project): View
     {
         $this->authorize('view', $project);
+        $project = $this->projects->detailFor(request()->user(), $project);
         $canViewActivity = request()->user()->can('viewAny', Activity::class);
 
         return view('projects::show', [
-            'project' => $project->load('owner')->loadCount('memberships'),
+            'project' => $project,
             'activities' => $canViewActivity ? $this->activity->recentForProject($project) : null,
             'canViewActivity' => $canViewActivity,
         ]);

@@ -14,16 +14,18 @@ use Modules\Projects\Http\Requests\UpdateProjectMemberRequest;
 use Modules\Projects\Data\UpdateProjectMemberData;
 use Modules\Projects\Http\Resources\ProjectMemberResource;
 use Modules\Projects\Models\Project;
+use Modules\Projects\Repositories\ProjectRepository;
 use Modules\Projects\Services\ProjectMemberService;
 
 class ProjectMemberController
 {
     use AuthorizesRequests;
 
-    public function __construct(private readonly ProjectMemberService $members, private readonly UserRepository $users) {}
+    public function __construct(private readonly ProjectMemberService $members, private readonly UserRepository $users, private readonly ProjectRepository $projects) {}
 
     public function index(ProjectMemberIndexRequest $request, Project $project): AnonymousResourceCollection
     {
+        $project = $this->projects->detailFor($request->user(), $project);
         $this->authorize('view', $project);
 
         return ProjectMemberResource::collection(

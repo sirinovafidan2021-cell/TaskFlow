@@ -15,6 +15,7 @@ use Modules\Tasks\Data\TaskFiltersData;
 use Modules\Tasks\Data\UpdateTaskData;
 use Modules\Tasks\Enums\TaskPriority;
 use Modules\Tasks\Enums\TaskStatus;
+use Modules\Tasks\Enums\TaskType;
 use Modules\Tasks\Http\Requests\AssignTaskRequest;
 use Modules\Tasks\Http\Requests\ChangeTaskStatusRequest;
 use Modules\Tasks\Http\Requests\CreateTaskRequest;
@@ -36,14 +37,14 @@ class TaskController
     {
         $this->authorize('viewAny', Task::class);
 
-        return view('tasks::index', ['tasks' => $this->tasks->paginateFor($request->user(), TaskFiltersData::fromArray($request->all())), 'statuses' => TaskStatus::cases(), 'priorities' => TaskPriority::cases(), 'projects' => $this->tasks->filterProjectsFor($request->user()), 'users' => $this->tasks->filterUsersFor($request->user())]);
+        return view('tasks::index', ['tasks' => $this->tasks->paginateFor($request->user(), TaskFiltersData::fromArray($request->all())), 'statuses' => TaskStatus::cases(), 'types' => TaskType::cases(), 'priorities' => TaskPriority::cases(), 'projects' => $this->tasks->filterProjectsFor($request->user()), 'users' => $this->tasks->filterUsersFor($request->user())]);
     }
 
     public function create(Project $project): View
     {
         $this->authorize('create', [Task::class, $project]);
 
-        return view('tasks::create', ['project' => $project, 'memberships' => $this->members->memberships($project), 'priorities' => TaskPriority::cases()]);
+        return view('tasks::create', ['project' => $project, 'memberships' => $this->members->memberships($project), 'priorities' => TaskPriority::cases(), 'types' => TaskType::cases(), 'parents' => $this->tasks->standardParentsForProject($project)]);
     }
 
     public function store(CreateTaskRequest $request, Project $project): RedirectResponse
@@ -59,14 +60,14 @@ class TaskController
         $this->authorize('view', $task);
         $canViewActivity = request()->user()->can('viewAny', Activity::class);
 
-        return view('tasks::show', ['task' => $task->load(['project', 'creator', 'assignee', 'comments.user', 'attachments.uploader']), 'memberships' => $this->members->memberships($task->project), 'nextStatuses' => $this->statuses->availableStatuses($task, request()->user()), 'activities' => $canViewActivity ? $this->activity->recentForTask($task) : null, 'canViewActivity' => $canViewActivity]);
+        return view('tasks::show', ['task' => $task->load(['project', 'creator', 'assignee', 'parent', 'subtasks', 'comments.user', 'attachments.uploader', 'attachments.media']), 'memberships' => $this->members->memberships($task->project), 'nextStatuses' => $this->statuses->availableStatuses($task, request()->user()), 'activities' => $canViewActivity ? $this->activity->recentForTask($task) : null, 'canViewActivity' => $canViewActivity]);
     }
 
     public function edit(Task $task): View
     {
         $this->authorize('update', $task);
 
-        return view('tasks::edit', compact('task'));
+        return view('tasks::edit', ['task' => $task->load('project'), 'types' => TaskType::cases(), 'parents' => $this->tasks->standardParentsForProject($task->project)->reject(fn (Task $parent): bool => $parent->id === $task->id)]);
     }
 
     public function update(UpdateTaskRequest $request, Task $task): RedirectResponse
@@ -87,8 +88,9 @@ class TaskController
 
     public function assign(AssignTaskRequest $request, Task $task): RedirectResponse
     {
-        $this->authorize('assign', $task);
-        $this->assignments->assign($task->load('project'), $request->filled('assignee_id') ? $this->users->findOrFail($request->integer('assignee_id')) : null, $request->user());
+        $assignee = $request->filled('assignee_id') ? $this->users->findOrFail($request->integer('assignee_id')) : null;
+        $this->authorize('assign', [$task, $assignee]);
+        $this->assignments->assign($task->load('project'), $assignee, $request->user());
 
         return back()->with('success', 'Task assignment updated.');
     }
