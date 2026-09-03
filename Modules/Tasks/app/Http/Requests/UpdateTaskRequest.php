@@ -16,6 +16,6 @@ class UpdateTaskRequest extends FormRequest
 
     public function rules(): array
     {
-        return ['title' => ['required', 'string', 'min:3', 'max:180'], 'description' => ['nullable', 'string', 'max:10000'], 'priority' => ['required', Rule::enum(TaskPriority::class)], 'due_at' => ['nullable', 'date'], 'type' => ['nullable', Rule::enum(TaskType::class)], 'parent_id' => ['nullable', 'integer', 'exists:tasks,id']];
+        return ['title' => ['required', 'string', 'min:3', 'max:180'], 'description' => ['nullable', 'string', 'max:10000'], 'priority' => ['required', Rule::enum(TaskPriority::class)], 'due_at' => ['nullable', 'date'], 'type' => ['nullable', Rule::enum(TaskType::class)], 'parent_id' => ['nullable', 'integer', 'exists:tasks,id'], 'label_ids'=>['sometimes','array'], 'label_ids.*'=>['integer','distinct','exists:task_labels,id']];
     }
 }

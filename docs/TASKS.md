@@ -23,7 +23,7 @@ Rules:
 
 ## Active task
 
-`TF-603` — Single-assignee rules; verified 2026-09-02. Növbəti dependency-ready task `TF-604`-dür.
+`TF-610` — Comments business completion; verified. Növbəti dependency-ready task `TF-700`-dür; TF-103 deferred verification olaraq qalır.
 
 ## Implementation status
 
@@ -35,7 +35,7 @@ Rules:
 | 3. Accounts and authentication | TF-300–TF-303 | verified | TF-300–TF-303 account lifecycle, session, token contract və security audit evidence-ləri SQLite suite-də keçib |
 | 4. Projects | TF-400–TF-402 | verified | TF-400–TF-402 project key/lifecycle, membership integrity və Web/API presentation acceptance criteria-ları SQLite testləri ilə verified edildi |
 | 5. Central Media | TF-500–TF-503 | verified | TF-500–TF-503 central private Media scaffold, storage, migration və authorized Task Web/API flow-ları ilə verified edildi |
-| 6. Minimal Jira domain | TF-600–TF-610 | in_progress | TF-600–TF-603 verified: issue allocation, type/subtask, visibility, mutation və single-assignee qaydaları tamamlandı |
+| 6. Minimal Jira domain | TF-600–TF-610 | verified | Issue allocation, type/subtask, visibility, assignment, workflow, labels, watchers, rank/board/filter və comments executable SQLite testləri ilə verified edildi |
 | 7. UI/Livewire/JS | TF-700–TF-705 | pending | Shared UI and four approved Livewire components |
 | 8. Activity/notifications/Dashboard | TF-800–TF-802 | pending | Canonical audit, inbox, useful work queues/metrics |
 | 9. API contract | TF-900–TF-901 | pending | Complete named/versioned contract and reference collection |
@@ -105,13 +105,13 @@ Rules:
 | TF-601 | verified | TF-600, TF-203 | 2026-09-02: `TaskType` (`task`, `bug`, `story`, `subtask`), Task parent foreign key/index-i, create/update/filter/Resource/UI integration-i və same-project/one-level/completion guard-ları əlavə edildi. Focused suite PASS — 4 test, 21 assertion; full SQLite suite PASS — 87 test, 438 assertion. |
 | TF-602 | verified | TF-205, TF-401, TF-600, TF-601 | 2026-09-02: Project member bütün görünən project work-larını list/API/Dashboard/Activity scope-larında görür və Active project-də report edə bilir. Manager edit/delete, reporter-in yalnız Todo state-də öz taskını edit etməsi, Completed/Archived service qoruması və soft-delete audit davranışı focused matrix ilə yoxlandı. Focused suite PASS — 5 test, 38 assertion; full SQLite suite PASS — 92 test, 476 assertion. |
 | TF-603 | verified | TF-602, TF-401 | 2026-09-02: Nullable single `assignee_id` saxlanıldı; member yalnız özünü, manager isə aktiv project member-i assign/unassign edir. Service membership/status/actor invariant-larını, assignee auto-watch və actor-dan fərqli recipient üçün safe database notification-u transaction-da tətbiq edir. Focused suite + rollback PASS — 6 test, 30 assertion; full SQLite suite PASS — 97 test, 499 assertion. |
-| TF-604 | pending | TF-602, TF-603 | — |
-| TF-605 | pending | TF-400, TF-602 | — |
-| TF-606 | pending | TF-300, TF-401, TF-602, TF-603 | — |
-| TF-607 |e pending | TF-604 | — |
-| TF-608 | pnding | TF-604, TF-607 | — |
-| TF-609 | pending | TF-601, TF-605, TF-606, TF-607 | — |
-| TF-610 | pending | TF-602, TF-606 | — |
+| TF-604 | verified | TF-602, TF-603 | 2026-09-02: `backlog` workflow state-i, exact transition map, Active project/assignee-manager authority, started/completed timestamp semantics və task `version` optimistic conflict sütunu əlavə edildi. Focused workflow PASS — 9 test, 31 assertion; rollback PASS — 1 test, 7 assertion; full SQLite suite PASS — 106 test, 530 assertion. |
+| TF-605 | verified | TF-400, TF-602 | 2026-09-03: Project-scoped label CRUD/sync/filter, enum color validation, Web form/management UI, API Resource/contract və read-only/project-scope authorization matrix completed. Focused labels suite PASS — 5 test, 51 assertion; full SQLite suite PASS — 111 test, 581 assertion. |
+| TF-606 | verified | TF-300, TF-401, TF-602, TF-603 | 2026-09-03: Watcher self/manager flows, auto-watch, membership/suspension cleanup, eligible-recipient notifications və Web inbox completed. Focused watcher suite PASS — 3 test, 21 assertion; related focused suite PASS — 22 test, 113 assertion; full SQLite suite PASS — 114 test, 602 assertion. |
+| TF-607 | verified | TF-604 | 2026-09-03: Project-local rank, manager-only neighbor reorder, status-move end placement və Web/API backlog added. Focused rank/workflow suite PASS — 12 test, 44 assertion; full SQLite suite PASS — 117 test, 615 assertion. |
+| TF-608 | verified | TF-604, TF-607 | 2026-09-03: Project-scoped Web/API board, grouped eager cards, progressive drag/drop and server form fallback completed. Focused board suite PASS — 2 test, 13 assertion; full SQLite suite PASS — 119 test, 628 assertion. |
+| TF-609 | verified | TF-601, TF-605, TF-606, TF-607 | 2026-09-03: Shared task filter DTO/scope, signed sorts, multi-value filters and justified indexes completed. Focused filter suite PASS — 2 test, 9 assertion; full SQLite suite PASS — 121 test, 637 assertion. |
+| TF-610 | verified | TF-602, TF-606 | 2026-09-03: Comment service/policy/request invariants, Web/API Resource contract, nested scope, safe rendering, watcher notification və activity sanitization completed. Focused comment/auth/watcher suite PASS — 10 test, 74 assertion; full SQLite suite PASS — 125 test, 680 assertion. |
 
 ### Phase 7
 
@@ -532,6 +532,19 @@ Do not mark TF-000 verified until the target repository contains the full canoni
 
 - `docs/V1_HANDOFF.md`
 - `docs/LEARNING_GUIDE.md`
+
+```text
+Date/time: 2026-09-02 +0400
+Task ID: TF-604
+Commands/checks:
+- `php -l` ilə Task enum/DTO/service/repository/controller/migration/test və `bootstrap/app.php` syntax yoxlaması.
+- `env APP_PACKAGES_CACHE=/tmp/taskflow-laravel-cache/packages.php APP_SERVICES_CACHE=/tmp/taskflow-laravel-cache/services.php APP_CONFIG_CACHE=/tmp/taskflow-laravel-cache/config.php APP_ROUTES_CACHE=/tmp/taskflow-laravel-cache/routes-v7.php APP_EVENTS_CACHE=/tmp/taskflow-laravel-cache/events.php VIEW_COMPILED_PATH=/tmp/taskflow-laravel-views LOG_CHANNEL=errorlog LOG_LEVEL=critical php artisan test --compact Modules/Tasks/tests/Feature/TaskWorkflowTest.php`.
+- Eyni process-local environment ilə `php artisan test --compact tests/Feature/MigrationRollbackTest.php` və `php artisan test --compact`.
+Result:
+- Syntax PASS; workflow focused suite PASS — 9 test, 31 assertion; rollback PASS — 1 test, 7 assertion; full default SQLite suite PASS — 106 test, 530 assertion.
+Remaining risk or blocker: Hostun `storage/logs`/`bootstrap/cache` permission problemi səbəbilə yalnız process-local `/tmp` cache/view environment istifadə edildi; TF-604 task-owned blocker yoxdur.
+Reviewer: Codex
+```
 
 ```text
 Date/time: 2026-09-02 +0400

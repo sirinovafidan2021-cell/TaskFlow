@@ -19,13 +19,15 @@ class Task extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $attributes = ['version' => 1];
+
     protected static function newFactory(): Factory
     {
         return \Database\Factories\TaskFactory::new();
     }
 
     protected $fillable = [
-        'number', 'issue_number', 'project_id', 'creator_id', 'assignee_id', 'parent_id', 'type', 'title', 'description',
+        'number', 'issue_number', 'version', 'rank', 'project_id', 'creator_id', 'assignee_id', 'parent_id', 'type', 'title', 'description',
         'status', 'priority', 'due_at', 'started_at', 'completed_at',
     ];
 
@@ -33,6 +35,8 @@ class Task extends Model
     {
         return [
             'issue_number' => 'integer',
+            'version' => 'integer',
+            'rank' => 'integer',
             'type' => TaskType::class,
             'status' => TaskStatus::class,
             'priority' => TaskPriority::class,
@@ -80,6 +84,11 @@ class Task extends Model
     public function watchers(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'task_watchers')->withTimestamps();
+    }
+
+    public function labels(): BelongsToMany
+    {
+        return $this->belongsToMany(TaskLabel::class, 'task_label')->with('project');
     }
 
     public function getDisplayKeyAttribute(): string

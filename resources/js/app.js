@@ -31,10 +31,31 @@ if (mobileNavigation && mobileNavigationToggle && mobileNavigationBackdrop) {
     });
 }
 
+const confirmationModal = document.querySelector('[data-confirm-modal]');
+
 document.querySelectorAll('form[data-confirm]').forEach((form) => {
     form.addEventListener('submit', (event) => {
-        if (!window.confirm(form.dataset.confirm)) {
-            event.preventDefault();
+        if (form.dataset.confirmed === 'true') {
+            return;
         }
+
+        event.preventDefault();
+
+        if (!confirmationModal?.showModal) {
+            if (window.confirm(form.dataset.confirm)) {
+                form.dataset.confirmed = 'true';
+                form.requestSubmit();
+            }
+
+            return;
+        }
+
+        confirmationModal.querySelector('[data-confirm-message]').textContent = form.dataset.confirm;
+        confirmationModal.showModal();
+        confirmationModal.querySelector('[data-confirm-submit]').onclick = () => {
+            confirmationModal.close();
+            form.dataset.confirmed = 'true';
+            form.requestSubmit();
+        };
     });
 });

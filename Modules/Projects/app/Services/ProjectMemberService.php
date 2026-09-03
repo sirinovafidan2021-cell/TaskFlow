@@ -17,12 +17,14 @@ use Modules\Projects\Exceptions\MemberHasOpenAssignments;
 use Modules\Projects\Models\Project;
 use Modules\Projects\Models\ProjectMember;
 use Modules\Projects\Repositories\ProjectMemberRepository;
+use Modules\Tasks\Repositories\TaskWatcherRepository;
 
 class ProjectMemberService
 {
     public function __construct(
         private readonly ProjectMemberRepository $members,
         private readonly ActivityRecorder $activity,
+        private readonly TaskWatcherRepository $watchers,
     ) {}
 
     public function addMember(Project $project, User $user, ProjectMemberRole $role, ?DateTimeInterface $joinedAt = null, ?User $actor = null): ProjectMember
@@ -99,6 +101,7 @@ class ProjectMemberService
             }
 
             // Task watcher persistence is introduced by TF-606. There are no watcher rows to clean in this schema yet.
+            $this->watchers->removeForProject($project, $user);
             $this->members->delete($project, $user);
             $this->activity->record('project.member_removed', $actor ?? $user, $project, [
                 'project_id' => $project->id,

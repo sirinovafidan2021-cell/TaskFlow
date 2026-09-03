@@ -7,6 +7,7 @@ use Modules\Projects\Enums\ProjectMemberRole;
 use Modules\Projects\Models\Project;
 use Modules\Projects\Services\ProjectMemberService;
 use Modules\Tasks\Data\CreateTaskData;
+use Modules\Tasks\Data\ChangeTaskStatusData;
 use Modules\Tasks\Data\UpdateTaskData;
 use Modules\Tasks\Enums\TaskPriority;
 use Modules\Tasks\Enums\TaskStatus;
@@ -74,10 +75,12 @@ it('prevents invalid type changes and protects parent completion while subtasks 
     expect(fn () => app(TaskService::class)->update($parent->load('project'), new UpdateTaskData('Parent', null, TaskPriority::Medium, null, TaskType::Subtask, $child->id, true), $manager))->toThrow(LogicException::class);
 
     $parent->update(['status' => TaskStatus::Review]);
-    expect(fn () => app(TaskStatusService::class)->change($parent->fresh()->load('project'), TaskStatus::Done, $manager))->toThrow(InvalidTaskStatusTransition::class);
+    $currentParent = $parent->fresh()->load('project');
+    expect(fn () => app(TaskStatusService::class)->change($currentParent, new ChangeTaskStatusData(TaskStatus::Done, $currentParent->version), $manager))->toThrow(InvalidTaskStatusTransition::class);
 
     $child->update(['status' => TaskStatus::Done]);
-    expect(app(TaskStatusService::class)->change($parent->fresh()->load('project'), TaskStatus::Done, $manager)->status)->toBe(TaskStatus::Done);
+    $currentParent = $parent->fresh()->load('project');
+    expect(app(TaskStatusService::class)->change($currentParent, new ChangeTaskStatusData(TaskStatus::Done, $currentParent->version), $manager)->status)->toBe(TaskStatus::Done);
 });
 
 it('uses the same typed DTO flow in Web presentation and the API resource', function (): void {

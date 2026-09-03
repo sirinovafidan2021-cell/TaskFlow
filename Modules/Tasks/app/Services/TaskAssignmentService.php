@@ -3,7 +3,6 @@
 namespace Modules\Tasks\Services;
 
 use App\Models\User;
-use App\Notifications\TaskAssignedNotification;
 use Illuminate\Support\Facades\DB;
 use LogicException;
 use Modules\Activity\Services\ActivityRecorder;
@@ -15,7 +14,7 @@ use Modules\Tasks\Repositories\TaskWatcherRepository;
 
 class TaskAssignmentService
 {
-    public function __construct(private readonly TaskRepository $tasks, private readonly ProjectMemberService $members, private readonly ActivityRecorder $activity, private readonly TaskWatcherRepository $watchers) {}
+    public function __construct(private readonly TaskRepository $tasks, private readonly ProjectMemberService $members, private readonly ActivityRecorder $activity, private readonly TaskWatcherRepository $watchers, private readonly TaskWatcherNotificationService $notifications) {}
 
     public function assign(Task $task, ?User $assignee, User $actor): Task
     {
@@ -38,12 +37,10 @@ class TaskAssignmentService
                 return $task;
             }
             $task->assignee()->associate($assignee);
+            $task->version++;
             $task = $this->tasks->save($task);
             if ($assignee !== null) {
                 $this->watchers->ensureWatching($task, $assignee);
-                if ($assignee->id !== $actor->id) {
-                    $assignee->notify(new TaskAssignedNotification($task, $actor));
-                }
             }
             $this->activity->record('task.assigned', $actor, $task, [
                 'project_id' => $task->project_id,
@@ -55,6 +52,7 @@ class TaskAssignmentService
                 'old' => ['assignee_id' => $oldAssignee?->id, 'assignee_name' => $oldAssignee?->name ?: $oldAssignee?->email],
                 'new' => ['assignee_id' => $assignee?->id, 'assignee_name' => $assignee?->name ?: $assignee?->email],
             ]);
+            $this->notifications->notify($task->loadMissing('project'), $actor, 'task.assigned');
 
             return $task;
         });

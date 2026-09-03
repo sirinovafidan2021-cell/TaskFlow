@@ -17,6 +17,8 @@ interface TaskRepository
 
     public function findOrFail(int $id): Task;
 
+    public function lockForUpdate(Task $task): Task;
+
     public function hasOpenSubtasks(Task $task): bool;
 
     public function hasSubtasks(Task $task): bool;
@@ -30,4 +32,6 @@ interface TaskRepository
     public function filterProjectsFor(User $user): Collection;
 
     public function filterUsersFor(User $user): Collection;
+
+    public function filterLabelsFor(User $user): Collection;
 }

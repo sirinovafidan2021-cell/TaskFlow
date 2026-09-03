@@ -19,14 +19,16 @@ class TaskIndexRequest extends FormRequest
     {
         return [
             'search' => ['nullable', 'string', 'max:180'],
-            'status' => ['nullable', Rule::enum(TaskStatus::class)],
-            'type' => ['nullable', Rule::enum(TaskType::class)],
-            'priority' => ['nullable', Rule::enum(TaskPriority::class)],
+            'statuses' => ['nullable','array'], 'statuses.*' => [Rule::enum(TaskStatus::class)],
+            'types' => ['nullable','array'], 'types.*' => [Rule::enum(TaskType::class)],
+            'priorities' => ['nullable','array'], 'priorities.*' => [Rule::enum(TaskPriority::class)],
             'project_id' => ['nullable', 'integer', 'exists:projects,id'],
             'assignee_id' => ['nullable', 'integer', 'exists:users,id'],
+            'reporter_id' => ['nullable','integer','exists:users,id'], 'parent_id' => ['nullable','integer','exists:tasks,id'],
+            'label_ids' => ['nullable','array'], 'label_ids.*' => ['integer','exists:task_labels,id'],
             'due_before' => ['nullable', 'date'],
-            'sort' => ['nullable', Rule::in(['created_at', 'due_at', 'priority', 'status', 'number'])],
-            'direction' => ['nullable', Rule::in(['asc', 'desc'])],
+            'due_after' => ['nullable','date'], 'overdue' => ['nullable','boolean'],
+            'sort' => ['nullable', Rule::in(['number','-number','created_at','-created_at','updated_at','-updated_at','due_at','-due_at','priority','-priority','status','-status','rank','-rank'])],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ];
     }

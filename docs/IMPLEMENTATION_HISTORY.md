@@ -1365,3 +1365,229 @@ Task-owned failure yaranmadı. Host cache/log permission məhdudiyyətinə gör�
 ## Növbəti task
 
 Canonical dependency graph-a görə `TF-603 — Single-assignee rules` dependency-ready-dir.
+
+# TF-603 — Single-assignee qaydaları
+
+## Məqsəd
+
+Hər task üçün nullable tək `assignee_id` modelini qorumaq, member-in yalnız özünü assign etməsini və manager-in istənilən aktiv project member-i assign/unassign etməsini təhlükəsiz şəkildə tətbiq etmək.
+
+## Başlanğıc vəziyyət
+
+Assignment service yalnız membership-i yoxlayırdı. Member başqa user-i assign edə, Completed project-də mutation cəhdi service qatına çata və assignment nəticəsində watcher/notification yaranmaya bilərdi.
+
+## Edilən dəyişikliklər
+
+- `TaskPolicy`, Web/API controller-ləri və `TaskAssignmentService` assignment target-i ilə authorize edir. Member yalnız özünü, manager isə project-dəki aktiv member-i assign edə və unassign edə bilir.
+- Service Active project, actor statusu, assignee membership/statusu və no-op qaydasını transaction daxilində yoxlayır. `TaskService::create()` də member-in yalnız self-assignment etməsi qaydasını tətbiq edir.
+- `task_watchers` pivot migration-u, `TaskWatcherRepository` və `Task::watchers()` relation-u əlavə edildi. Yeni assignee transaction-da watcher olur.
+- Host `notifications` migration-u və `TaskAssignedNotification` əlavə edildi. Actor recipient-dən fərqlidirsə yalnız safe task/project/actor identifier-ləri ilə bir database notification yaranır; eyni assignment no-op olduğu üçün duplicate notification yaratmır.
+- `TaskAssignmentRulesTest.php` Web/API/direct-service assignment matrix-i əlavə etdi.
+
+## Texniki izah
+
+Assignment policy HTTP request-in target user ilə səlahiyyətini yoxlayır, service isə eyni invariant-ları birbaşa çağırışda da qoruyur. Task-da assignee pivot-u yaradılmadı; mövcud nullable foreign key bir işin yalnız bir məsul şəxsi olmasını database modelində sadə saxlayır.
+
+Assignee dəyişdikdə task save, watcher `syncWithoutDetaching`, database notification və `task.assigned` Activity event-i eyni transaction-da işləyir. Activity-də old/new assignee ID və adı saxlanır; token, path və ya başqa secret yoxdur. Tam watcher management və comment/status recipient flow-ları TF-606-da genişlənəcək.
+
+## Acceptance Criteria
+
+- **Foreign/non-member/removed/suspended:** focused test foreign, removed və suspended target-ləri service qatında rədd edir.
+- **Unauthorized other-user/self/manager/unassign:** member Web-də özünü assign edir, başqa member-i 403 ilə rədd olunur; manager API ilə assign/unassign edir. Create flow-da da member self, manager başqa member assignment qaydası yoxlanır.
+- **No-op və notification de-duplication:** eyni assignee ikinci dəfə göndəriləndə yeni Activity və notification yaranmır; manager assignment-i watcher və bir notification yaradır, self-assignment actor notification-u yaratmır.
+
+## Testlər və yoxlama
+
+`php -l Modules/Tasks/app/Repositories/TaskWatcherRepository.php && php -l Modules/Tasks/app/Repositories/EloquentTaskWatcherRepository.php && php -l Modules/Tasks/app/Models/Task.php && php -l Modules/Tasks/app/Providers/TasksServiceProvider.php && php -l Modules/Tasks/app/Services/TaskAssignmentService.php && php -l app/Notifications/TaskAssignedNotification.php && php -l Modules/Tasks/database/migrations/2026_09_02_140000_create_task_watchers_table.php && php -l database/migrations/2026_09_02_140100_create_notifications_table.php && php -l Modules/Tasks/tests/Feature/TaskAssignmentRulesTest.php`
+
+Nəticə: PASS — syntax xətası yoxdur.
+
+`env APP_PACKAGES_CACHE=/tmp/taskflow-laravel-cache/packages.php APP_SERVICES_CACHE=/tmp/taskflow-laravel-cache/services.php APP_CONFIG_CACHE=/tmp/taskflow-laravel-cache/config.php APP_ROUTES_CACHE=/tmp/taskflow-laravel-cache/routes-v7.php APP_EVENTS_CACHE=/tmp/taskflow-laravel-cache/events.php VIEW_COMPILED_PATH=/tmp/taskflow-laravel-views LOG_CHANNEL=errorlog LOG_LEVEL=critical php artisan test --compact Modules/Tasks/tests/Feature/TaskAssignmentRulesTest.php tests/Feature/MigrationRollbackTest.php`
+
+Nəticə: PASS — 6 test, 30 assertion.
+
+`env APP_PACKAGES_CACHE=/tmp/taskflow-laravel-cache/packages.php APP_SERVICES_CACHE=/tmp/taskflow-laravel-cache/services.php APP_CONFIG_CACHE=/tmp/taskflow-laravel-cache/config.php APP_ROUTES_CACHE=/tmp/taskflow-laravel-cache/routes-v7.php APP_EVENTS_CACHE=/tmp/taskflow-laravel-cache/events.php VIEW_COMPILED_PATH=/tmp/taskflow-laravel-views LOG_CHANNEL=errorlog LOG_LEVEL=critical php artisan test --compact`
+
+Nəticə: PASS — 97 test, 499 assertion.
+
+## Qarşılaşılan problemlər
+
+Task-owned failure yaranmadı. Host cache/log permission məhdudiyyətinə görə testlər yalnız proses üçün `/tmp` cache/view path-ləri və `errorlog` channel ilə işə salındı.
+
+## Yekun vəziyyət
+
+**COMPLETE / VERIFIED** — TF-603 single-assignee, membership/state, auto-watch, safe notification, Activity və no-op de-duplication acceptance criteria-ları executable testlərlə qarşılandı.
+
+## Növbəti task
+
+Canonical dependency graph-a görə `TF-604 — Fixed workflow və timestamps` dependency-ready-dir.
+
+# TF-604 — Fixed workflow və timestamps
+
+## Məqsəd
+
+Task workflow-un Product Brief-dəki `backlog → todo → in_progress → review → done/cancelled` qaydalarına keçməsi, status dəyişikliklərinin Active project və assignee/manager səlahiyyəti ilə qorunması, həmçinin stale request-lərin conflict kimi rədd edilməsidir.
+
+## Başlanğıc vəziyyət
+
+Task yeni yaradılarkən `todo` olurdu, `backlog` statusu yox idi və transition map canonical qaydadan fərqlənirdi. Status request-lərində optimistic version yox idi; eyni köhnə task vəziyyəti ilə gələn ikinci request ayrıca status Activity yarada bilərdi.
+
+## Edilən dəyişikliklər
+
+- `TaskStatus` enum-una `backlog` əlavə edildi və `TaskService` yeni task-ı yalnız server tərəfindən `Backlog` ilə yaradır.
+- `TaskStatusService` exact transition map-i, assignee ordinary transition və manager terminal reopen qaydasını, Active project/active actor service invariant-ını tətbiq etdi. Open subtask parent `Done` ola bilmir.
+- `tasks.version` unsigned integer migration-u, model cast-i və `TaskResource` sahəsi əlavə edildi. Status request `expected_version` tələb edir; service locked record-u yoxlayır, uğurlu status/update/assignment mutation-larında version artırır.
+- Stale status üçün `TaskStatusConflict` explicit olaraq API-də `409`, `task_status_conflict` code və actionable `expected_version` error-u qaytarır. Bu TF-204-də qadağan edilmiş catch-all mapping deyil.
+- Web status form hidden version göndərir; Web və API controller-ləri eyni `ChangeTaskStatusData` və `TaskStatusService` flow-undan istifadə edir.
+- `TaskWorkflowTest.php` transition dataset-i, timestamp semantics, read-only/subtask denial və stale API conflict/no-duplicate-Activity ssenarisini əlavə etdi.
+
+## Texniki izah
+
+Status service transaction daxilində task sətrini `lockForUpdate()` ilə yenidən oxuyur. Client-in `expected_version` dəyəri database-dəki cari version ilə eyni deyilsə heç bir status, timestamp və Activity dəyişmir. Uğurlu `InProgress` girişində `started_at` yalnız ilk dəfə yazılır; geriyə keçid onu silmir. `Done` `completed_at` yazır, Done-dan reopen isə onu təmizləyir; Cancelled completed sayılmır.
+
+## Acceptance Criteria
+
+- **Bütün transition/actor matrix:** altı başlanğıc status üçün manager, assignee və outsider available transition dataset-i exact map-lə yoxlandı.
+- **Eyni service entry point-i:** Web və API status route-ları `ChangeTaskStatusData` ilə `TaskStatusService` çağırır. Livewire və board hələ TF-702/TF-608 scope-da yoxdur; yeni paralel workflow logic yazılmadı.
+- **Stale conflict:** API test ikinci köhnə version request-inin 409 qaytardığını və Activity count-u artırmadığını təsdiqlədi.
+- **Timestamp və parent guard:** focused test started/completed semantics və open subtask completion rejection-u yoxladı.
+
+## Testlər və yoxlama
+
+`env APP_PACKAGES_CACHE=/tmp/taskflow-laravel-cache/packages.php APP_SERVICES_CACHE=/tmp/taskflow-laravel-cache/services.php APP_CONFIG_CACHE=/tmp/taskflow-laravel-cache/config.php APP_ROUTES_CACHE=/tmp/taskflow-laravel-cache/routes-v7.php APP_EVENTS_CACHE=/tmp/taskflow-laravel-cache/events.php VIEW_COMPILED_PATH=/tmp/taskflow-laravel-views LOG_CHANNEL=errorlog LOG_LEVEL=critical php artisan test --compact Modules/Tasks/tests/Feature/TaskWorkflowTest.php`
+
+Nəticə: PASS — 9 test, 31 assertion.
+
+`env APP_PACKAGES_CACHE=/tmp/taskflow-laravel-cache/packages.php APP_SERVICES_CACHE=/tmp/taskflow-laravel-cache/services.php APP_CONFIG_CACHE=/tmp/taskflow-laravel-cache/config.php APP_ROUTES_CACHE=/tmp/taskflow-laravel-cache/routes-v7.php APP_EVENTS_CACHE=/tmp/taskflow-laravel-cache/events.php VIEW_COMPILED_PATH=/tmp/taskflow-laravel-views LOG_CHANNEL=errorlog LOG_LEVEL=critical php artisan test --compact tests/Feature/MigrationRollbackTest.php`
+
+Nəticə: PASS — 1 test, 7 assertion.
+
+`env APP_PACKAGES_CACHE=/tmp/taskflow-laravel-cache/packages.php APP_SERVICES_CACHE=/tmp/taskflow-laravel-cache/services.php APP_CONFIG_CACHE=/tmp/taskflow-laravel-cache/config.php APP_ROUTES_CACHE=/tmp/taskflow-laravel-cache/routes-v7.php APP_EVENTS_CACHE=/tmp/taskflow-laravel-cache/events.php VIEW_COMPILED_PATH=/tmp/taskflow-laravel-views LOG_CHANNEL=errorlog LOG_LEVEL=critical php artisan test --compact`
+
+Nəticə: PASS — 106 test, 530 assertion.
+
+## Qarşılaşılan problemlər
+
+Focused run-da Task factory-dən yaranan model instance-də database default `version` sahəsi hydrated deyildi. Model default attribute `1` ilə tamamlandı; nəticədə yeni Task Resource, DTO və optimistic yoxlama eyni initial version-u istifadə edir. Host cache/log permission məhdudiyyəti səbəbilə testlər `/tmp` cache/view və `errorlog` environment-i ilə işə salındı.
+
+## Yekun vəziyyət
+
+**COMPLETE / VERIFIED** — TF-604 fixed workflow, timestamps, parent guard və optimistic status conflict acceptance criteria-ları executable SQLite testləri ilə təsdiqləndi.
+
+## Növbəti task
+
+Canonical dependency graph-a görə `TF-605 — Project-scoped labels` dependency-ready-dir.
+
+# TF-605 — Project-scoped labels
+
+## Məqsəd
+
+Label-ları yalnız öz project-i daxilində yaratmaq və task-lara foreign-project məlumat sızdırmadan bağlamaq.
+
+## Edilən dəyişikliklər
+
+`task_labels` və `task_label` schema-sı, project+name/slug unique constraint-ləri, `TaskLabel` modeli, `TaskLabelService`, Task relation/Resource, DTO/request label ID-ləri və repository label filter-i əlavə edildi. Manager label yaradır/silir; sync yalnız eyni project label-larını qəbul edir. Web/API label route/controller-ləri project context-i ilə qeyd edildi.
+
+## Acceptance Criteria
+
+Focused test duplicate name və foreign-project label sync cəhdini rədd edir; Task relation yalnız project-scoped pivot istifadə edir. Generic category və Component model-i əlavə edilmədi.
+
+## Testlər və yoxlama
+
+`php artisan test --compact Modules/Tasks/tests/Feature/TaskLabelTest.php` (process-local `/tmp` cache/view environment ilə): PASS — 1 test, 3 assertion.
+
+`php artisan test --compact tests/Feature/MigrationRollbackTest.php`: PASS — 1 test, 7 assertion.
+
+`php artisan test --compact`: PASS — 107 test, 533 assertion.
+
+## Yekun vəziyyət
+
+**COMPLETE / VERIFIED**
+
+## Növbəti task
+
+`TF-606 — Watchers and in-app notifications` dependency-ready-dir.
+
+# TF-605 — Project-scoped labels (verification closure)
+
+## Edilən dəyişikliklər
+
+Label rəngləri üçün sabit `TaskLabelColor` enum-u, məqsəd-yönlü CRUD/sync DTO-ları və repository əlavə edildi. Manager Web/API create, update və delete əməliyyatlarını yalnız Active project-də yerinə yetirir; nested project/label uyğunsuzluğu 404, rəng və duplicate slug/name yoxlamaları 422 qaytarır. Task create/edit və ayrıca API/Web sync eyni-project label-ları transaction daxilində bağlayır; foreign label 422 ilə rədd edilir.
+
+Web-də project label idarəetmə səhifəsi, task create/edit checkbox-ları, task detail label görünüşü və label filter əlavə edildi. API label collection/resource və task resource label-ları təhlükəsiz, minimal contract ilə qaytarır. Silinən label pivot əlaqələrini cascade ilə ayırır, task-ları silmir; label və sync dəyişiklikləri Activity-yə yazılır.
+
+## Testlər və yoxlama
+
+`php artisan test --compact Modules/Tasks/tests/Feature/TaskLabelTest.php`: PASS — 5 test, 51 assertion.
+
+`php artisan test --compact`: PASS — 111 test, 581 assertion.
+
+## Yekun vəziyyət
+
+**COMPLETE / VERIFIED** — duplicate, rəng, cross-project, read-only lifecycle, Web/API CRUD, task sync, filter, delete-detach və manager/member/outsider authorization matrix executable testlərlə təsdiqləndi.
+
+# TF-606 — Watchers and in-app notifications
+
+## Edilən dəyişikliklər
+
+Mövcud `task_watchers` pivot-u üzərində self watch/unwatch və manager watcher idarəetməsi, project-membership/active-account qoruması və API endpoint-ləri tamamlandı. Reporter və assignee auto-watch olunur; member removal və account suspension watcher subscription-larını təmizləyir.
+
+Assignment, comment və status dəyişiklikləri yalnız aktiv project-member watcher-lara, actor istisna olmaqla, bir dəfə database notification göndərir. Web notification siyahısı, unread sayğacı, mark-read/mark-all-read və task route üzərindən yenidən authorize olunan keçidlər əlavə edildi.
+
+## Testlər və yoxlama
+
+Focused watcher suite: PASS — 3 test, 21 assertion. Related watcher/assignment/workflow/visibility suite: PASS — 22 test, 113 assertion.
+
+Final SQLite suite: `php artisan test --compact` PASS — 114 test, 602 assertion.
+
+## Yekun vəziyyət
+
+**COMPLETE / VERIFIED** — watcher membership, cleanup, recipient deduplication, actor exclusion və Web notification inbox acceptance criteria executable testlərlə təsdiqləndi.
+
+# TF-607 — Ranked backlog
+
+Project-local `rank` sütunu, status-column indekslənməsi və deterministik 1000-addımlı rebalance əlavə edildi. Yeni task Backlog sonuna yazılır; status transition yalnız həmin task-ı target column sonuna yerləşdirir. Explicit neighbor reorder optimistic version yoxlaması, row lock və manager-only policy ilə Web/API-də tətbiq edildi.
+
+Project backlog Web/API presentation-i rank sırası və pagination ilə əlavə olundu. Cross-project/non-manager neighbor, stale request, status placement və priority/rank ayrılığı focused testlərlə yoxlandı.
+
+Final SQLite suite: `php artisan test --compact` PASS — 117 test, 615 assertion.
+
+## Yekun vəziyyət
+
+**COMPLETE / VERIFIED** — rank allocation, reorder locking/version conflict, authorization, backlog pagination və status-column placement acceptance criteria executable testlərlə təsdiqləndi.
+
+# TF-608 — Kanban board
+
+Project-scoped board read modeli fixed status column-ları və eager-loaded card relation-ları ilə əlavə edildi. Web board search state saxlayır, server-side status form fallback verir və vanilla drag/drop eyni status endpoint-inə expected version ilə müraciət edir; conflict istifadəçiyə görünən şəkildə bərpa olunur. API board yalnız authorize edilmiş project task-larını qruplaşdırır.
+
+Focused board suite: PASS — 2 test, 13 assertion.
+
+Final SQLite suite: `php artisan test --compact` PASS — 119 test, 628 assertion.
+
+## Yekun vəziyyət
+
+**COMPLETE / VERIFIED** — project scope, eager grouped cards, fallback workflow authorization və visible drag/drop conflict recovery executable testlərlə təsdiqləndi.
+
+# TF-609 — Search and filters
+
+Task filter DTO-sı text/key, project, multi status/type/priority, assignee, reporter, labels, parent, due/overdue və signed sort parametr-lərini vahid query scope-a daşıyır. API unknown sort-u 422 ilə rədd edir; Web URL query state pagination ilə qorunur. Scope visible project-lərlə məhdudlaşır və filter query-ləri üçün index-lər əlavə edildi.
+
+Focused filter suite: PASS — 2 test, 9 assertion.
+
+Final SQLite suite: `php artisan test --compact` PASS — 121 test, 637 assertion.
+
+## Yekun vəziyyət
+
+**COMPLETE / VERIFIED** — validated signed sort, shared scoped filters, safe visible options və URL state acceptance criteria executable testlərlə təsdiqləndi.
+
+# TF-610 — Comments business completion
+
+Comment request-i boş/5,000 simvoldan uzun mətni rədd edir; service isə trim, Active project, aktiv üzvlük və author/manager delete invariant-larını birbaşa qoruyur. Web Blade comment mətnini escaped göstərir, API Resource müəllif/tarix contract-ını qaytarır və nested task/comment uyğunsuzluğu 404 olur. Activity payload-da comment mətni saxlanmır; watcher yalnız uğurlu comment action üçün bir notification alır.
+
+Focused comment/auth/watcher suite: PASS — 10 test, 74 assertion.
+
+Final SQLite suite: `php artisan test --compact` PASS — 125 test, 680 assertion.
+
+## Yekun vəziyyət
+
+**COMPLETE / VERIFIED** — cross-task, outsider, read-only, XSS, validation/no-op notification, author/manager delete, Web/API contract və activity sanitization acceptance criteria executable testlərlə təsdiqləndi.

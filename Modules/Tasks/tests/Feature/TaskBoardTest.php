@@ -1,0 +1,13 @@
+<?php
+use App\Models\User;
+use Database\Seeders\RolePermissionSeeder;
+use Laravel\Sanctum\Sanctum;
+use Modules\Projects\Enums\ProjectMemberRole;
+use Modules\Projects\Models\Project;
+use Modules\Projects\Services\ProjectMemberService;
+use Modules\Tasks\Enums\TaskStatus;
+use Modules\Tasks\Models\Task;
+beforeEach(function(){ $this->seed(RolePermissionSeeder::class); });
+function boardContext(): array { $manager=User::factory()->asProjectManager()->create();$member=User::factory()->asMember()->create();$outsider=User::factory()->asMember()->create();$project=Project::factory()->active()->create(['owner_id'=>$manager->id]);$other=Project::factory()->active()->create(['owner_id'=>$manager->id]);app(ProjectMemberService::class)->addMember($project,$member,ProjectMemberRole::Member,actor:$manager);$backlog=Task::factory()->for($project)->for($manager,'creator')->create(['status'=>TaskStatus::Backlog,'rank'=>1000]);$todo=Task::factory()->for($project)->for($manager,'creator')->create(['status'=>TaskStatus::Todo,'rank'=>1000]);$foreign=Task::factory()->for($other)->for($manager,'creator')->create(['status'=>TaskStatus::Backlog,'rank'=>1000]);return[$manager,$member,$outsider,$project,$backlog,$todo,$foreign]; }
+test('board is project scoped, eager card data is rendered and API groups fixed columns',function(){[$manager,$member,$outsider,$project,$backlog,$todo,$foreign]=boardContext();$this->actingAs($member)->get(route('projects.board',$project))->assertOk()->assertSee($backlog->title)->assertSee($todo->title)->assertDontSee($foreign->title)->assertSee('data-board',false);Sanctum::actingAs($member,['tasks:read']);$this->getJson('/api/v1/projects/'.$project->id.'/board')->assertOk()->assertJsonPath('data.backlog.0.id',$backlog->id)->assertJsonPath('data.todo.0.id',$todo->id);Sanctum::actingAs($outsider,['tasks:read']);$this->getJson('/api/v1/projects/'.$project->id.'/board')->assertForbidden();});
+test('board fallback and drag target status route remain policy and version protected',function(){[$manager,$member,,,$backlog]=$ctx=boardContext();$this->actingAs($member)->patch(route('tasks.status',$backlog),['status'=>'todo','expected_version'=>$backlog->version])->assertForbidden();$this->actingAs($manager)->patch(route('tasks.status',$backlog),['status'=>'todo','expected_version'=>$backlog->version])->assertRedirect();expect($backlog->fresh()->status)->toBe(TaskStatus::Todo);$stale=$backlog->version;Sanctum::actingAs($manager,['tasks:write']);$this->patchJson('/api/v1/tasks/'.$backlog->id.'/status',['status'=>'in_progress','expected_version'=>$stale])->assertStatus(409);});

@@ -15,6 +15,6 @@ class ChangeTaskStatusRequest extends FormRequest
 
     public function rules(): array
     {
-        return ['status' => ['required', Rule::enum(TaskStatus::class)]];
+        return ['status' => ['required', Rule::enum(TaskStatus::class)], 'expected_version' => ['required', 'integer', 'min:1']];
     }
 }

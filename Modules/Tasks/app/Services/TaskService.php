@@ -19,10 +19,11 @@ use Modules\Tasks\Enums\TaskStatus;
 use Modules\Tasks\Enums\TaskType;
 use Modules\Tasks\Models\Task;
 use Modules\Tasks\Repositories\TaskRepository;
+use Modules\Tasks\Repositories\TaskWatcherRepository;
 
 class TaskService
 {
-    public function __construct(private readonly TaskRepository $tasks, private readonly ProjectMemberService $members, private readonly ActivityRecorder $activity, private readonly ProjectService $projects, private readonly UserRepository $users) {}
+    public function __construct(private readonly TaskRepository $tasks, private readonly ProjectMemberService $members, private readonly ActivityRecorder $activity, private readonly ProjectService $projects, private readonly UserRepository $users, private readonly TaskLabelService $labels, private readonly TaskWatcherRepository $watchers, private readonly TaskRankService $ranks) {}
 
     public function create(User $actor, Project $project, CreateTaskData $data): Task
     {
@@ -48,10 +49,15 @@ class TaskService
             $task = $this->tasks->save(new Task([
                 'number' => $allocatedIssue->displayKey,
                 'issue_number' => $allocatedIssue->issueNumber,
+                'version' => 1,
                 'project_id' => $project->id, 'creator_id' => $actor->id, 'assignee_id' => $data->assigneeId, 'type' => $data->type, 'parent_id' => $parent?->id,
-                'title' => $data->title, 'description' => $data->description, 'status' => TaskStatus::Todo,
+                'title' => $data->title, 'description' => $data->description, 'status' => TaskStatus::Backlog,
                 'priority' => $data->priority, 'due_at' => $data->dueAt,
             ]));
+            $task = $this->ranks->placeAtEnd($task);
+            if ($data->labelIds !== []) { $this->labels->sync($task, $data->labelIds, $actor); }
+            $this->watchers->ensureWatching($task, $actor);
+            if ($data->assigneeId && $data->assigneeId !== $actor->id) $this->watchers->ensureWatching($task, $assignee);
             $this->activity->record('task.created', $actor, $task, ['project_id' => $project->id, 'task_id' => $task->id, 'task_number' => $task->number, 'task_title' => $task->title]);
 
             return $task;
@@ -72,13 +78,27 @@ class TaskService
             $changed = array_keys($task->getDirty());
             $old = $this->safeChangedValues($task, $changed, true);
             $new = $this->safeChangedValues($task, $changed, false);
-            $task = $this->tasks->save($task);
             if ($changed !== []) {
+                $task->version++;
+                $task = $this->tasks->save($task);
                 $this->activity->record('task.updated', $actor, $task, ['project_id' => $task->project_id, 'task_id' => $task->id, 'changed' => $changed, 'old' => $old, 'new' => $new]);
             }
 
+            if ($changed === []) {
+                $task = $this->tasks->save($task);
+            }
+            if ($data->labelsProvided) { $this->labels->sync($task, $data->labelIds, $actor); }
+
             return $task;
         });
+    }
+
+    /** @param list<int> $labelIds */
+    public function syncLabels(Task $task, array $labelIds, User $actor): Task
+    {
+        $this->ensureUpdateAllowed($task, $actor);
+
+        return $this->labels->sync($task, $labelIds, $actor);
     }
 
     public function delete(Task $task, User $actor): void
@@ -104,7 +124,7 @@ class TaskService
 
         if ($this->members->isMember($task->project, $actor)
             && $task->creator_id === $actor->id
-            && $task->status === TaskStatus::Todo) {
+            && in_array($task->status, [TaskStatus::Backlog, TaskStatus::Todo], true)) {
             return;
         }
 

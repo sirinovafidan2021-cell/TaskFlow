@@ -9,20 +9,26 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Modules\Projects\Models\Project;
 use Modules\Projects\Repositories\ProjectRepository;
 use Modules\Tasks\Data\CreateTaskData;
+use Modules\Tasks\Data\ChangeTaskStatusData;
 use Modules\Tasks\Data\TaskFiltersData;
 use Modules\Tasks\Data\UpdateTaskData;
+use Modules\Tasks\Data\SyncTaskLabelsData;
+use Modules\Tasks\Data\ReorderTaskData;
 use Modules\Tasks\Enums\TaskStatus;
 use Modules\Tasks\Http\Requests\Api\V1\StoreTaskRequest;
 use Modules\Tasks\Http\Requests\Api\V1\TaskIndexRequest;
 use Modules\Tasks\Http\Requests\AssignTaskRequest;
 use Modules\Tasks\Http\Requests\ChangeTaskStatusRequest;
 use Modules\Tasks\Http\Requests\UpdateTaskRequest;
+use Modules\Tasks\Http\Requests\SyncTaskLabelsRequest;
+use Modules\Tasks\Http\Requests\ReorderTaskRequest;
 use Modules\Tasks\Http\Resources\TaskResource;
 use Modules\Tasks\Models\Task;
 use Modules\Tasks\Repositories\TaskRepository;
 use Modules\Tasks\Services\TaskAssignmentService;
 use Modules\Tasks\Services\TaskService;
 use Modules\Tasks\Services\TaskStatusService;
+use Modules\Tasks\Services\TaskRankService;
 
 class TaskController
 {
@@ -35,6 +41,7 @@ class TaskController
         private readonly TaskStatusService $statuses,
         private readonly UserRepository $users,
         private readonly ProjectRepository $projects,
+        private readonly TaskRankService $ranks,
     ) {}
 
     public function index(TaskIndexRequest $request): AnonymousResourceCollection
@@ -52,7 +59,7 @@ class TaskController
     {
         $this->authorize('view', $task);
 
-        return new TaskResource($task->load(['project', 'creator', 'assignee', 'parent', 'subtasks']));
+        return new TaskResource($task->load(['project', 'creator', 'assignee', 'labels', 'parent', 'subtasks']));
     }
 
     public function store(StoreTaskRequest $request): JsonResponse
@@ -67,7 +74,7 @@ class TaskController
             CreateTaskData::fromArray($project->id, $data),
         );
 
-        return (new TaskResource($task->load(['project', 'creator', 'assignee', 'parent', 'subtasks'])))->response()->setStatusCode(201);
+        return (new TaskResource($task->load(['project', 'creator', 'assignee', 'labels', 'parent', 'subtasks'])))->response()->setStatusCode(201);
     }
 
     public function update(UpdateTaskRequest $request, Task $task): TaskResource
@@ -76,7 +83,15 @@ class TaskController
 
         $task = $this->taskService->update($task, UpdateTaskData::fromArray($request->validated()), $request->user());
 
-        return new TaskResource($task->load(['project', 'creator', 'assignee', 'parent', 'subtasks']));
+        return new TaskResource($task->load(['project', 'creator', 'assignee', 'labels', 'parent', 'subtasks']));
+    }
+
+    public function syncLabels(SyncTaskLabelsRequest $request, Task $task): TaskResource
+    {
+        $this->authorize('update', $task);
+        $task = $this->taskService->syncLabels($task->load('project'), SyncTaskLabelsData::fromArray($request->validated())->labelIds, $request->user());
+
+        return new TaskResource($task->load(['project', 'creator', 'assignee', 'labels']));
     }
 
     public function destroy(Task $task): JsonResponse
@@ -104,10 +119,11 @@ class TaskController
 
         $task = $this->statuses->change(
             $task->load('project'),
-            TaskStatus::from($request->string('status')->toString()),
+            ChangeTaskStatusData::fromArray($request->validated()),
             $request->user(),
         );
 
         return new TaskResource($task->load(['project', 'creator', 'assignee']));
     }
+    public function reorder(ReorderTaskRequest $request, Task $task): TaskResource { $this->authorize('reorder',$task); return new TaskResource($this->ranks->reorder($task, ReorderTaskData::fromArray($request->validated()), $request->user())->load(['project','creator','assignee'])); }
 }

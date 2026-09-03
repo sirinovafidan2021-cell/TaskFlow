@@ -12,6 +12,7 @@ use Modules\Tasks\Enums\TaskPriority;
 use Modules\Tasks\Enums\TaskStatus;
 use Modules\Tasks\Enums\TaskType;
 use Modules\Tasks\Models\Task;
+use Modules\Tasks\Models\TaskLabel;
 
 class EloquentTaskRepository implements TaskRepository
 {
@@ -25,14 +26,19 @@ class EloquentTaskRepository implements TaskRepository
 
     private function baseQuery(TaskFiltersData $filters)
     {
-        return Task::query()->with(['project', 'creator', 'assignee', 'parent:id,project_id,number,title,type', 'subtasks:id,parent_id,project_id,number,title,type'])
+        return Task::query()->with(['project', 'creator', 'assignee', 'labels', 'parent:id,project_id,number,title,type', 'subtasks:id,parent_id,project_id,number,title,type'])
             ->when(filled($filters->q), fn ($query) => $query->where(fn ($query) => $query->where('number', 'like', "%{$filters->q}%")->orWhere('title', 'like', "%{$filters->q}%")->orWhere('description', 'like', "%{$filters->q}%")))
-            ->when(TaskStatus::tryFrom((string) $filters->status), fn ($query, $status) => $query->where('status', $status->value))
-            ->when(TaskType::tryFrom((string) $filters->type), fn ($query, $type) => $query->where('type', $type->value))
-            ->when(TaskPriority::tryFrom((string) $filters->priority), fn ($query, $priority) => $query->where('priority', $priority->value))
+            ->when($filters->statuses !== [], fn ($query) => $query->whereIn('status', $filters->statuses))
+            ->when($filters->types !== [], fn ($query) => $query->whereIn('type', $filters->types))
+            ->when($filters->priorities !== [], fn ($query) => $query->whereIn('priority', $filters->priorities))
             ->when($filters->projectId, fn ($query, $id) => $query->where('project_id', $id))
             ->when($filters->assigneeId, fn ($query, $id) => $query->where('assignee_id', $id))
-            ->when($filters->dueBefore, fn ($query, $date) => $query->whereDate('due_at', '<=', $date));
+            ->when($filters->reporterId, fn ($query, $id) => $query->where('creator_id', $id))
+            ->when($filters->parentId, fn ($query, $id) => $query->where('parent_id', $id))
+            ->when($filters->dueBefore, fn ($query, $date) => $query->whereDate('due_at', '<=', $date))
+            ->when($filters->dueAfter, fn ($query, $date) => $query->whereDate('due_at', '>=', $date))
+            ->when($filters->overdue, fn ($query) => $query->whereDate('due_at','<',today())->whereNotIn('status',[TaskStatus::Done->value,TaskStatus::Cancelled->value]))
+            ->when($filters->labelIds !== [], fn ($query) => $query->whereHas('labels', fn ($labels) => $labels->whereIn('task_labels.id',$filters->labelIds)));
     }
 
     private function visibleTo($query, User $user)
@@ -53,14 +59,12 @@ class EloquentTaskRepository implements TaskRepository
 
     private function sortColumn(TaskFiltersData $filters): string
     {
-        return in_array($filters->sort, ['created_at', 'due_at', 'priority', 'status', 'number'], true)
-            ? $filters->sort
-            : 'created_at';
+        return in_array(ltrim($filters->sort,'-'), ['created_at','updated_at','due_at','priority','status','number','rank'], true) ? ltrim($filters->sort,'-') : 'created_at';
     }
 
     private function sortDirection(TaskFiltersData $filters): string
     {
-        return $filters->direction === 'asc' ? 'asc' : 'desc';
+        return str_starts_with($filters->sort,'-') ? 'desc' : 'asc';
     }
 
     public function save(Task $task): Task
@@ -73,6 +77,11 @@ class EloquentTaskRepository implements TaskRepository
     public function findOrFail(int $id): Task
     {
         return Task::query()->with(['project', 'parent', 'subtasks'])->findOrFail($id);
+    }
+
+    public function lockForUpdate(Task $task): Task
+    {
+        return Task::query()->with('project')->whereKey($task->id)->lockForUpdate()->firstOrFail();
     }
 
     public function hasOpenSubtasks(Task $task): bool
@@ -117,5 +126,10 @@ class EloquentTaskRepository implements TaskRepository
             ->whereIn('id', $this->visibleTo(Task::query(), $user)->whereNotNull('assignee_id')->select('assignee_id'))
             ->orderBy('name')
             ->get();
+    }
+
+    public function filterLabelsFor(User $user): Collection
+    {
+        return TaskLabel::query()->whereIn('project_id', $this->visibleTo(Task::query(), $user)->select('project_id'))->orderBy('name')->get();
     }
 }

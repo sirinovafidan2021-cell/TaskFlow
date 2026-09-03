@@ -38,7 +38,7 @@ class TaskPolicy
         }
 
         return ($user->hasPermissionTo(PermissionName::TasksUpdate->value) && $this->members->canManage($task->project, $user))
-            || ($task->creator_id === $user->id && $task->status === TaskStatus::Todo);
+            || ($task->creator_id === $user->id && in_array($task->status, [TaskStatus::Backlog, TaskStatus::Todo], true));
     }
 
     public function delete(User $user, Task $task): bool
@@ -63,17 +63,37 @@ class TaskPolicy
 
     public function changeStatus(User $user, Task $task): bool
     {
-        return $user->hasPermissionTo(PermissionName::TasksStatusChange->value) && ($this->members->canManage($task->project, $user) || $task->assignee_id === $user->id);
+        return $task->project->status === ProjectStatus::Active
+            && $user->hasPermissionTo(PermissionName::TasksStatusChange->value)
+            && ($this->members->canManage($task->project, $user) || ($task->assignee_id === $user->id && $this->members->isMember($task->project, $user)));
     }
 
     public function comment(User $user, Task $task): bool
     {
-        return $user->hasPermissionTo(PermissionName::CommentsCreate->value) && $this->view($user, $task);
+        return $task->project->status === ProjectStatus::Active
+            && $user->hasPermissionTo(PermissionName::CommentsCreate->value)
+            && $this->view($user, $task);
+    }
+
+    public function watch(User $user, Task $task, User $target): bool
+    {
+        return $task->project->status === ProjectStatus::Active && $this->view($user, $task)
+            && ($user->id === $target->id || $this->members->canManage($task->project, $user));
+    }
+
+    public function reorder(User $user, Task $task): bool
+    {
+        return $task->project->status === ProjectStatus::Active && $this->members->canManage($task->project, $user);
     }
 
     public function deleteComment(User $user, Task $task, TaskComment $comment): bool
     {
-        return $user->hasPermissionTo(PermissionName::CommentsDelete->value) && ($user->id === $comment->user_id || $this->members->canManage($task->project, $user));
+        if ($task->project->status !== ProjectStatus::Active || ! $this->view($user, $task)) {
+            return false;
+        }
+
+        return $user->id === $comment->user_id
+            || ($user->hasPermissionTo(PermissionName::CommentsDelete->value) && $this->members->canManage($task->project, $user));
     }
 
     public function uploadAttachment(User $user, Task $task): bool

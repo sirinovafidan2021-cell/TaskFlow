@@ -16,10 +16,11 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use LogicException;
 use Modules\Tasks\Repositories\TaskRepository;
+use Modules\Tasks\Repositories\TaskWatcherRepository;
 
 class AdminUserService
 {
-    public function __construct(private readonly TaskRepository $tasks, private readonly SecurityAuditService $audit) {}
+    public function __construct(private readonly TaskRepository $tasks, private readonly TaskWatcherRepository $watchers, private readonly SecurityAuditService $audit) {}
     public function paginate(?string $search, ?string $role, int $perPage = 12): LengthAwarePaginator
     {
         return User::query()
@@ -92,6 +93,7 @@ class AdminUserService
 
             $this->ensureLastActiveAdminCanBeSuspended($user);
             $this->tasks->unassignOpenWorkFor($user);
+            $this->watchers->removeForUser($user);
             $user->tokens()->delete();
             $this->invalidateSessions($user);
             $user->forceFill(['status' => AccountStatus::Suspended])->save();

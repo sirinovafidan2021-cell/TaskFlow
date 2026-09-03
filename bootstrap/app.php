@@ -5,6 +5,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Modules\Projects\Exceptions\MemberHasOpenAssignments;
+use Modules\Tasks\Exceptions\TaskStatusConflict;
 use Laravel\Sanctum\Http\Middleware\CheckAbilities;
 use Laravel\Sanctum\Http\Middleware\CheckForAnyAbility;
 use App\Http\Middleware\EnsureActiveUser;
@@ -37,6 +38,17 @@ return Application::configure(basePath: dirname(__DIR__))
                 'code' => 'member_has_open_assignments',
                 'errors' => ['user_id' => ['Reassign or unassign open work before removal.']],
                 'meta' => ['open_assignment_count' => $exception->count],
+            ], 409);
+        });
+        $exceptions->render(function (TaskStatusConflict $exception, Request $request) {
+            if (! ($request->is('api/*') || $request->expectsJson())) {
+                return null;
+            }
+
+            return response()->json([
+                'message' => 'The task status was changed by another request.',
+                'code' => 'task_status_conflict',
+                'errors' => ['expected_version' => ['Refresh the task and try again.']],
             ], 409);
         });
     })->create();

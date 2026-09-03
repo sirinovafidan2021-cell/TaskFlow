@@ -44,5 +44,10 @@ class ProjectPolicy
         return $this->update($user, $project);
     }
 
+    public function manageLabels(User $user, Project $project): bool
+    {
+        return $project->status === ProjectStatus::Active && $this->manageMembers($user, $project);
+    }
+
     private function isManager(Project $project, User $user): bool { return $project->memberships()->where('user_id',$user->id)->where('member_role',ProjectMemberRole::Manager->value)->exists(); }
 }

@@ -50,9 +50,7 @@
                         <svg class="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 6.75 12 12l9-5.25"/><path d="M3 6.75v10.5A1.75 1.75 0 0 0 4.75 19h14.5A1.75 1.75 0 0 0 21 17.25V6.75"/></svg>
                         <input id="email" name="email" type="email" value="{{ old('email') }}" autocomplete="email" required autofocus class="block w-full rounded-xl border border-slate-300 bg-white py-3 pl-12 pr-4 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/15 @error('email') border-rose-400 focus:border-rose-500 focus:ring-rose-500/15 @enderror">
                     </div>
-                    @error('email')
-                        <p class="mt-2 text-sm font-medium text-rose-600">{{ $message }}</p>
-                    @enderror
+                    <x-form-error field="email" />
                 </div>
 
                 <div>
@@ -61,9 +59,7 @@
                         <svg class="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
                         <input id="password" name="password" type="password" autocomplete="current-password" required class="block w-full rounded-xl border border-slate-300 bg-white py-3 pl-12 pr-4 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/15 @error('password') border-rose-400 focus:border-rose-500 focus:ring-rose-500/15 @enderror">
                     </div>
-                    @error('password')
-                        <p class="mt-2 text-sm font-medium text-rose-600">{{ $message }}</p>
-                    @enderror
+                    <x-form-error field="password" />
                 </div>
 
                 <label class="flex cursor-pointer items-center gap-3 text-sm font-medium text-slate-600">
@@ -77,9 +73,7 @@
                     Remember me
                 </label>
 
-                        <button type="submit" class="w-full rounded-xl bg-indigo-600 px-4 py-3 font-semibold text-white shadow-lg shadow-indigo-600/25 transition hover:bg-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-500/25">
-                            Sign in to TaskFlow
-                        </button>
+                        <x-button class="w-full py-3">Sign in to TaskFlow</x-button>
                     </form>
                 </div>
 
