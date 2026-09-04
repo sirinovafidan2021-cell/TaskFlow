@@ -4,6 +4,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use LogicException;
 use Modules\Activity\Services\ActivityRecorder;
+use Modules\Activity\Enums\ActivityEvent;
 use Modules\Projects\Enums\ProjectStatus;
 use Modules\Projects\Services\ProjectMemberService;
 use Modules\Tasks\Data\ReorderTaskData;
@@ -26,7 +27,7 @@ class TaskRankService
             if ($data->beforeTaskId !== null && $data->afterTaskId !== null && array_search($data->beforeTaskId,$ids,true) + 1 !== array_search($data->afterTaskId,$ids,true)) throw new LogicException('Reorder neighbors must be adjacent.');
             $at = $data->beforeTaskId !== null ? array_search($data->beforeTaskId,$ids,true) : ($data->afterTaskId !== null ? array_search($data->afterTaskId,$ids,true)+1 : count($ids)); array_splice($ids,$at,0,[$task->id]);
             foreach ($ids as $offset => $id) { $row = $items->firstWhere('id',$id) ?? $task; $rank = ($offset+1)*1000; if ($row->rank !== $rank) { $row->rank=$rank; if ($row->id === $task->id) $row->version++; $row->save(); } }
-            $task->refresh(); $this->activity->record('task.reordered',$actor,$task,['project_id'=>$task->project_id,'task_id'=>$task->id,'rank'=>$task->rank]); return $task;
+            $task->refresh(); $this->activity->record(ActivityEvent::TaskReordered,$actor,$task,['project_id'=>$task->project_id,'task_id'=>$task->id,'rank'=>$task->rank]); return $task;
         });
     }
 }

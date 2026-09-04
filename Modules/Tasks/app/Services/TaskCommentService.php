@@ -5,10 +5,12 @@ namespace Modules\Tasks\Services;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Modules\Activity\Services\ActivityRecorder;
+use Modules\Activity\Enums\ActivityEvent;
 use Modules\Projects\Services\ProjectMemberService;
 use Modules\Tasks\Models\Task;
 use Modules\Tasks\Models\TaskComment;
 use Modules\Tasks\Repositories\TaskCommentRepository;
+use Modules\Tasks\Repositories\TaskRepository;
 use Modules\Projects\Enums\ProjectStatus;
 
 class TaskCommentService
@@ -18,7 +20,18 @@ class TaskCommentService
         private readonly ActivityRecorder $activity,
         private readonly TaskWatcherNotificationService $notifications,
         private readonly ProjectMemberService $members,
+        private readonly TaskRepository $tasks,
     ) {}
+
+    public function currentTask(int $taskId): Task
+    {
+        return $this->tasks->findOrFail($taskId);
+    }
+
+    public function commentsFor(Task $task)
+    {
+        return $this->comments->forTask($task);
+    }
 
     public function create(Task $task, User $actor, string $body): TaskComment
     {
@@ -32,8 +45,8 @@ class TaskCommentService
 
         return DB::transaction(function () use ($task, $actor, $body) {
             $comment = $this->comments->save(new TaskComment(['task_id' => $task->id, 'user_id' => $actor->id, 'body' => $body]));
-            $this->activity->record('comment.created', $actor, $comment, ['project_id' => $task->project_id, 'task_id' => $task->id, 'comment_id' => $comment->id]);
-            $this->notifications->notify($task, $actor, 'comment.created');
+            $this->activity->record(ActivityEvent::CommentCreated, $actor, $comment, ['project_id' => $task->project_id, 'task_id' => $task->id, 'comment_id' => $comment->id]);
+            $this->notifications->notify($task, $actor, ActivityEvent::CommentCreated);
 
             return $comment;
         });
@@ -54,7 +67,7 @@ class TaskCommentService
             $projectId = $comment->task->project_id;
             $commentId = $comment->id;
             $this->comments->delete($comment);
-            $this->activity->record('comment.deleted', $actor, $comment, ['project_id' => $projectId, 'task_id' => $taskId, 'comment_id' => $commentId]);
+            $this->activity->record(ActivityEvent::CommentDeleted, $actor, $comment, ['project_id' => $projectId, 'task_id' => $taskId, 'comment_id' => $commentId]);
         });
     }
 

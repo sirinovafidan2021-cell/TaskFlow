@@ -6,6 +6,7 @@ use App\Enums\PermissionName;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Modules\Activity\Services\ActivityRecorder;
+use Modules\Activity\Enums\ActivityEvent;
 use Modules\Projects\Enums\ProjectStatus;
 use Modules\Projects\Services\ProjectMemberService;
 use Modules\Tasks\Data\ChangeTaskStatusData;
@@ -18,6 +19,12 @@ use Modules\Tasks\Repositories\TaskRepository;
 class TaskStatusService
 {
     public function __construct(private readonly TaskRepository $tasks, private readonly ProjectMemberService $members, private readonly ActivityRecorder $activity, private readonly TaskWatcherNotificationService $notifications, private readonly TaskRankService $ranks) {}
+
+    /** @return list<TaskStatus> */
+    public function current(int $taskId): Task
+    {
+        return $this->tasks->findOrFail($taskId);
+    }
 
     /** @return list<TaskStatus> */
     public function availableStatuses(Task $task, User $actor): array
@@ -70,8 +77,8 @@ class TaskStatusService
             $task->version++;
             $task = $this->tasks->save($task);
             $task = $this->ranks->placeAtEnd($task);
-            $this->activity->record('task.status_changed', $actor, $task, ['project_id' => $task->project_id, 'task_id' => $task->id, 'old' => $from, 'new' => $data->status->value, 'old_version' => $data->expectedVersion, 'new_version' => $task->version]);
-            $this->notifications->notify($task->loadMissing('project'), $actor, 'task.status_changed');
+            $this->activity->record(ActivityEvent::TaskStatusChanged, $actor, $task, ['project_id' => $task->project_id, 'task_id' => $task->id, 'old' => $from, 'new' => $data->status->value, 'old_version' => $data->expectedVersion, 'new_version' => $task->version]);
+            $this->notifications->notify($task->loadMissing('project'), $actor, ActivityEvent::TaskStatusChanged);
 
             return $task;
         });

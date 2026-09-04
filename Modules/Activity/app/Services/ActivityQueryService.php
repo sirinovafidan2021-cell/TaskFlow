@@ -61,18 +61,9 @@ class ActivityQueryService
     public function filterOptions(User $user): array
     {
         $activities = $this->scopedQuery($user);
-        $projectIds = (clone $activities)
-            ->whereNotNull('properties->project_id')
-            ->selectRaw("JSON_UNQUOTE(JSON_EXTRACT(properties, '$.project_id')) as activity_project_id")
-            ->pluck('activity_project_id')
-            ->unique()
-            ->filter();
-        $taskIds = (clone $activities)
-            ->whereNotNull('properties->task_id')
-            ->selectRaw("JSON_UNQUOTE(JSON_EXTRACT(properties, '$.task_id')) as activity_task_id")
-            ->pluck('activity_task_id')
-            ->unique()
-            ->filter();
+        $properties = (clone $activities)->get(['properties']);
+        $projectIds = $properties->map(fn (Activity $activity) => $activity->properties['project_id'] ?? null)->filter()->unique()->values();
+        $taskIds = $properties->map(fn (Activity $activity) => $activity->properties['task_id'] ?? null)->filter()->unique()->values();
         $actorIds = (clone $activities)->whereNotNull('causer_id')->pluck('causer_id')->unique()->filter();
 
         return [
@@ -100,7 +91,12 @@ class ActivityQueryService
             ->unique()
             ->values();
 
-        return $query->whereIn('properties->project_id', $projectIds->all());
+        return $query->where(function (Builder $scope) use ($projectIds, $user): void {
+            $scope->whereIn('properties->project_id', $projectIds->all())
+                ->orWhere(function (Builder $userActivity) use ($user): void {
+                    $userActivity->where('causer_id', $user->id)->where('subject_type', User::class);
+                });
+        });
     }
 
     private function normaliseFilters(array $filters): array

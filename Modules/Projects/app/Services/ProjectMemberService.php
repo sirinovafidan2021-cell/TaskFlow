@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Collection;
 use LogicException;
 use Modules\Activity\Services\ActivityRecorder;
+use Modules\Activity\Enums\ActivityEvent;
 use Modules\Projects\Data\UpdateProjectMemberData;
 use Modules\Projects\Enums\ProjectMemberRole;
 use Modules\Projects\Enums\ProjectStatus;
@@ -49,7 +50,7 @@ class ProjectMemberService
             }
 
             $membership = $this->members->create($project, $user, $role, $joinedAt ?? now());
-            $this->activity->record('project.member_added', $actor ?? $user, $project, [
+            $this->activity->record(ActivityEvent::ProjectMemberAdded, $actor ?? $user, $project, [
                 'project_id' => $project->id,
                 'member_id' => $user->id,
                 'member_name' => $user->name ?: $user->email,
@@ -77,7 +78,7 @@ class ProjectMemberService
             }
 
             $membership = $this->members->updateRole($project, $user, $data->role);
-            $this->activity->record('project.member_role_updated', $actor ?? $user, $project, [
+            $this->activity->record(ActivityEvent::ProjectMemberRoleUpdated, $actor ?? $user, $project, [
                 'project_id' => $project->id,
                 'member_id' => $user->id,
                 'member_name' => $user->name ?: $user->email,
@@ -103,7 +104,7 @@ class ProjectMemberService
             // Task watcher persistence is introduced by TF-606. There are no watcher rows to clean in this schema yet.
             $this->watchers->removeForProject($project, $user);
             $this->members->delete($project, $user);
-            $this->activity->record('project.member_removed', $actor ?? $user, $project, [
+            $this->activity->record(ActivityEvent::ProjectMemberRemoved, $actor ?? $user, $project, [
                 'project_id' => $project->id,
                 'member_id' => $user->id,
                 'member_name' => $user->name ?: $user->email,

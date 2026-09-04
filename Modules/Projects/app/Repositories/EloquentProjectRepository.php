@@ -5,6 +5,8 @@ namespace Modules\Projects\Repositories;
 use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Modules\Projects\Enums\ProjectStatus;
 use Modules\Projects\Models\Project;
 use Modules\Projects\Data\ProjectFiltersData;
@@ -21,11 +23,23 @@ class EloquentProjectRepository implements ProjectRepository
             ->withQueryString();
     }
 
+    public function visibleQueryFor(User $user): Builder
+    {
+        return $this->visibleTo(Project::query(), $user);
+    }
+
     public function detailFor(User $user, Project $project): Project
     {
         return $this->visibleTo($this->baseQuery(null, null), $user)
             ->whereKey($project->id)
             ->firstOrFail();
+    }
+
+    public function activeForTaskCreation(User $user): Collection
+    {
+        return $this->visibleTo(Project::query()->where('status', ProjectStatus::Active->value), $user)
+            ->orderBy('name')
+            ->get(['id', 'name', 'key', 'status', 'owner_id']);
     }
 
     private function baseQuery(?string $search, ?string $status)

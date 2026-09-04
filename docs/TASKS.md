@@ -23,23 +23,23 @@ Rules:
 
 ## Active task
 
-`TF-610` — Comments business completion; verified. Növbəti dependency-ready task `TF-700`-dür; TF-103 deferred verification olaraq qalır.
+`TF-103` — Architecture guard tests; verified.
 
 ## Implementation status
 
 | Phase | Tasks | Status | Gate/result |
 |---|---|---|---|
 | 0. Baseline and traceability | TF-000–TF-002 | verified | TF-000, TF-001, and TF-002 verified; next unblocked task is TF-100 |
-| 1. Test/factory/seed foundation | TF-100–TF-103 | in_progress | TF-100 və TF-102 verified; TF-101 explicit deferred `in_progress`, TF-103 aktivdir |
+| 1. Test/factory/seed foundation | TF-100–TF-103 | verified | Portable discovery, qa decomposition, deterministic fixtures və final architecture guards verified |
 | 2. Architecture/correctness repairs | TF-200–TF-205 | verified | TF-200–TF-205 üçün qeyd olunan SQLite test və route/architecture evidence-ləri keçib |
 | 3. Accounts and authentication | TF-300–TF-303 | verified | TF-300–TF-303 account lifecycle, session, token contract və security audit evidence-ləri SQLite suite-də keçib |
 | 4. Projects | TF-400–TF-402 | verified | TF-400–TF-402 project key/lifecycle, membership integrity və Web/API presentation acceptance criteria-ları SQLite testləri ilə verified edildi |
 | 5. Central Media | TF-500–TF-503 | verified | TF-500–TF-503 central private Media scaffold, storage, migration və authorized Task Web/API flow-ları ilə verified edildi |
 | 6. Minimal Jira domain | TF-600–TF-610 | verified | Issue allocation, type/subtask, visibility, assignment, workflow, labels, watchers, rank/board/filter və comments executable SQLite testləri ilə verified edildi |
-| 7. UI/Livewire/JS | TF-700–TF-705 | pending | Shared UI and four approved Livewire components |
-| 8. Activity/notifications/Dashboard | TF-800–TF-802 | pending | Canonical audit, inbox, useful work queues/metrics |
-| 9. API contract | TF-900–TF-901 | pending | Complete named/versioned contract and reference collection |
-| 10. Stabilization/release | TF-1000–TF-1004 | pending | Automated/manual gates and truthful release handoff |
+| 7. UI/Livewire/JS | TF-700–TF-705 | verified | TF-700–TF-705 shared UI, Livewire və focused vanilla JavaScript executable testlərlə verified edildi |
+| 8. Activity/notifications/Dashboard | TF-800–TF-802 | verified | TF-800–TF-802 canonical audit, notification center və dashboard queue/metric parity executable testlərlə verified edildi |
+| 9. API contract | TF-900–TF-901 | verified | TF-900–TF-901 exact runtime route/ability matrix, secret-free manual reference və executable documentation parity ilə verified edildi |
+| 10. Stabilization/release | TF-1000–TF-1004 | verified | Automated, browser, acceptance və handoff gate-ləri recorded evidence ilə verified |
 
 ## Task ledger
 
@@ -56,9 +56,9 @@ Rules:
 | ID | Status | Depends on | Evidence |
 |---|---|---|---|
 | TF-100 | verified | TF-001 | 2026-09-01: Default SQLite Pest suite 2 test və 14 assertion ilə keçdi. `project_members` migration-dakı SQLite-in qəbul etmədiyi `ALTER TABLE ... ADD PRIMARY KEY` əməliyyatı yalnız test migration loading-i açmaq üçün minimal şəkildə ilk create migration-a köçürüldü; test storage `/tmp/taskflow-testing-storage` altında izolyasiya edildi. MySQL profilinin xüsusi `TASKFLOW_MYSQL_TEST_DATABASE` olmadan təhlükəsiz rəddi təsdiqləndi. Ətraflı sübut aşağıdakı evidence log-da və `IMPLEMENTATION_HISTORY.md`-dədir. |
-| TF-101 | in_progress | TF-100 | 2026-09-01: Legacy suite SQLite expectation-a keçirildi. 35 testdən 30-u PASS oldu, 5 failure qaldı; `JSON_UNQUOTE` SQLite portability problemi AUD-25 / TF-800 owner-dir. Passing regression testlərinin standart qovluqlara bölünməsi, legacy assertion-ların Product Brief-ə rewrite olunması və `qa/` silinməsi istifadəçinin explicit təlimatı ilə qəsdən deferred-dir. Bu task COMPLETE/VERIFIED deyil, lakin bu istisna digər dependency-ready taskları bloklamır. |
+| TF-101 | verified | TF-100 | 2026-09-04: Inherited 35-block qa monolith was reconciled against standard Auth/Admin/Projects/Tasks/Media/Activity/Dashboard/API suites; current Product Brief behavior is covered by the decomposed 158-test suite. Obsolete implementation-detail qa regression was removed. Focused/full SQLite PASS — 158 tests, 989 assertions. |
 | TF-102 | verified | TF-100 | 2026-09-01: Project, ProjectMember, Task, TaskComment və inherited TaskAttachment factory-ləri enum state helper-ləri ilə əlavə edildi. `DatabaseSeeder` canonical roles-i yaradır; demo admin/manager/member yalnız `local` environment-də yaradılır. Focused suite 4 test/18 assertion, full default suite 6 test/32 assertion ilə PASS oldu. Ətraflı sübut `IMPLEMENTATION_HISTORY.md` və evidence log-dadır. |
-| TF-103 | in_progress | TF-100 | 2026-09-01: Controller boundary və LogicException mapping guard-ları əlavə edildi. 2 guard test hazırda expected FAIL olur: Task/Project controllers-də `Project::query()` və `User::query()` (TF-201/TF-202), bootstrap catch-all LogicException mapping (TF-204). İstifadəçinin explicit təlimatı ilə production owner taskları davam edir; guards həmin tasklardan sonra yenidən yoxlanacaq. |
+| TF-103 | verified | TF-100 | 2026-09-04: Final architecture guards cover controller persistence, exception mapping, approved Livewire, task/media boundary, request input, API Resource/route ownership, no skipped tests, module bindings and narrow documented dependency graph. Architecture PASS — 8 tests, 31 assertions; full SQLite PASS — 160 tests, 998 assertions. |
 
 ### Phase 2
 
@@ -117,37 +117,37 @@ Rules:
 
 | ID | Status | Depends on | Evidence |
 |---|---|---|---|
-| TF-700 | pending | TF-402, TF-503, TF-608, TF-609, TF-610 | — |
-| TF-701 | pending | TF-609, TF-700 | — |
-| TF-702 | pending | TF-604, TF-700 | — |
-| TF-703 | pending | TF-610, TF-700 | — |
-| TF-704 | pending | TF-601, TF-605, TF-602, TF-700 | — |
-| TF-705 | pending | TF-503, TF-608, TF-700 | — |
+| TF-700 | verified | TF-402, TF-503, TF-608, TF-609, TF-610 | 2026-09-04: Guest/app shells, permission-aware active navigation, reusable header/flash/error/badge/button/modal/media components, responsive board and focus treatment completed. Focused UI/presentation suite PASS — 17 test, 116 assertion; full SQLite suite PASS — 128 test, 702 assertion. |
+| TF-701 | verified | TF-609, TF-700 | 2026-09-04: Scoped Livewire TaskFilters, query service, URL/pagination/debounce/loading/error states və safe all-filter option sets completed. Re-verification: focused Livewire/filter suite PASS — 5 test, 33 assertion; full SQLite suite PASS — 158 test, 989 assertion. |
+| TF-702 | verified | TF-604, TF-700 | 2026-09-04: Livewire status selector service-provided choices, locked task identity, optimistic version, loading/conflict/success feedback və no-JS form fallback ilə completed. Focused selector/workflow suite PASS — 12 test, 47 assertion; full SQLite suite PASS — 134 test, 737 assertion. |
+| TF-703 | verified | TF-610, TF-700 | 2026-09-04: Livewire comment form service/policy/validation flow, locked task identity, refreshed list, no-JS fallback və in-flight double-submit protection completed. Focused comment suite PASS — 9 test, 84 assertion; full SQLite suite PASS — 136 test, 757 assertion. |
+| TF-704 | verified | TF-601, TF-605, TF-602, TF-700 | 2026-09-04: Dashboard/fixed-context Livewire quick create, project-scoped refreshed options, canonical DTO/service flow, validation və tampering protection completed. Focused quick-create/create-flow suite PASS — 17 test, 143 assertion; full SQLite suite PASS — 139 test, 805 assertion. |
+| TF-705 | verified | TF-503, TF-608, TF-700 | 2026-09-04: Accessible confirmation/preview dialogs, focus return, character counters, issue-key copy, one-time-token DOM cleanup və CSRF-safe board drag/drop recovery completed. Focused UI/board/media suite PASS — 10 test, 69 assertion; full SQLite suite PASS — 141 test, 828 assertion. |
 
 ### Phase 8
 
 | ID | Status | Depends on | Evidence |
 |---|---|---|---|
-| TF-800 | pending | TF-400 through TF-610 | — |
-| TF-801 | pending | TF-606, TF-700 | — |
-| TF-802 | pending | TF-609, TF-800, TF-704 | — |
+| TF-800 | verified | TF-400 through TF-610 | 2026-09-04: Canonical ActivityEvent enum, versioned recursive-safe payloads, portable scoped filter options, user/admin/media/label/watcher/rank events və global/project/task Web/API flows completed. Focused activity/regression suite PASS — 28 test, 167 assertion; full SQLite suite PASS — 143 test, 854 assertion. |
+| TF-801 | verified | TF-606, TF-700 | 2026-09-04: Centralized task notification recipients, unread badge/list, pagination, mark one/all read, safe summaries və authorized target links completed. Focused notification/watcher suite PASS — 17 test, 128 assertion; full SQLite suite PASS — 145 test, 873 assertion. |
+| TF-802 | verified | TF-609, TF-800, TF-704 | 2026-09-04: Canonical project/task visibility-scoped aggregates, assigned/reported/watched/overdue/completed-today queues, distributions, Web empty states və summary/queue API Resources completed. Focused dashboard/regression suite PASS — 12 test, 126 assertion; full SQLite suite PASS — 149 test, 913 assertion. |
 
 ### Phase 9
 
 | ID | Status | Depends on | Evidence |
 |---|---|---|---|
-| TF-900 | pending | TF-302, TF-402, TF-503, TF-600 through TF-610, TF-800, TF-802 | — |
-| TF-901 | pending | TF-900 | — |
+| TF-900 | verified | TF-302, TF-402, TF-503, TF-600 through TF-610, TF-800, TF-802 | 2026-09-04: Exact named v1 runtime route/ability matrix, protected-route authentication checks, canonical PUT-only updates, scoped filter validation, safe watcher Resources və nested media parameter contract completed. Focused API contract suite PASS — 40 test, 296 assertion; full SQLite suite PASS — 151 test, 964 assertion. |
+| TF-901 | verified | TF-900 | 2026-09-04: Runtime-derived 46-operation Postman checklist manifest, exact method/path/ability/result documentation, corrected stale manual items və secret-sample guard completed. Focused API reference suite PASS — 3 test, 49 assertion; full SQLite suite PASS — 152 test, 967 assertion. |
 
 ### Phase 10
 
 | ID | Status | Depends on | Evidence |
 |---|---|---|---|
-| TF-1000 | pending | all implementation tasks through TF-900 | — |
-| TF-1001 | pending | TF-700 through TF-705, TF-1000 | — |
-| TF-1002 | pending | TF-1000, TF-1001 | — |
-| TF-1003 | pending | TF-901, TF-1002 | — |
-| TF-1004 | pending | TF-1003 | — |
+| TF-1000 | verified | all implementation tasks through TF-900 | 2026-09-04: Risk-based Pest closure completed: Architecture suite default discovery-yə əlavə edildi; controller/Livewire/request/media/route-resource/no-skips guard-ları, mövcud domain/repository/Web/API/Livewire/security/media/activity/notification/dashboard suites və traceability audit closure checked. Focused Architecture suite PASS — 6 test, 22 assertion; full SQLite suite PASS — 158 test, 989 assertion. Approved MySQL compatibility run was not authorized. |
+| TF-1001 | verified | TF-700 through TF-705, TF-1000 | 2026-09-04: Locked Playwright 1.62.1, isolated SQLite fixture setup, secret-safe failure artifacts və desktop/mobile critical browser journeys completed. `npm run e2e` PASS — 8 test, 6.9s. |
+| TF-1002 | verified | TF-1000, TF-1001 | 2026-09-04: Composer validation, Vite production build, Playwright gate və full SQLite regression PASS. Pint reported inherited formatting drift only; no Critical/High finding. |
+| TF-1003 | verified | TF-901, TF-1002 | 2026-09-04: Isolated local desktop/mobile browser acceptance and API contract coverage executed with disposable fixture accounts; `npm run e2e` PASS — 8 tests, 6.7s; full SQLite regression PASS — 158 tests, 989 assertions. No secrets or production data used. |
+| TF-1004 | verified | TF-1003 | 2026-09-04: Canonical docs, traceability closure və dated release handoff reconciled. Full SQLite PASS — 158 tests, 989 assertions; Playwright PASS — 8 desktop/mobile journeys; Composer validation və Vite build PASS. |
 
 ## Evidence log template
 

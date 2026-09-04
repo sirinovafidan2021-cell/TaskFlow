@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use LogicException;
 use Modules\Activity\Services\ActivityRecorder;
+use Modules\Activity\Enums\ActivityEvent;
 use Modules\Projects\Enums\ProjectStatus;
 use Modules\Projects\Services\ProjectMemberService;
 use Modules\Tasks\Models\Task;
@@ -42,7 +43,7 @@ class TaskAssignmentService
             if ($assignee !== null) {
                 $this->watchers->ensureWatching($task, $assignee);
             }
-            $this->activity->record('task.assigned', $actor, $task, [
+            $this->activity->record(ActivityEvent::TaskAssigned, $actor, $task, [
                 'project_id' => $task->project_id,
                 'task_id' => $task->id,
                 'old_assignee_id' => $oldAssignee?->id,
@@ -52,7 +53,7 @@ class TaskAssignmentService
                 'old' => ['assignee_id' => $oldAssignee?->id, 'assignee_name' => $oldAssignee?->name ?: $oldAssignee?->email],
                 'new' => ['assignee_id' => $assignee?->id, 'assignee_name' => $assignee?->name ?: $assignee?->email],
             ]);
-            $this->notifications->notify($task->loadMissing('project'), $actor, 'task.assigned');
+            $this->notifications->notify($task->loadMissing('project'), $actor, ActivityEvent::TaskAssigned);
 
             return $task;
         });

@@ -9,7 +9,7 @@ Route::middleware('abilities:projects:read')->group(function (): void {
 });
 Route::middleware('abilities:projects:write')->group(function (): void {
     Route::post('/projects', [ProjectController::class, 'store'])->name('projects.store');
-    Route::match(['put','patch'], '/projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
+    Route::put('/projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
     Route::patch('/projects/{project}/status', [ProjectController::class, 'changeStatus'])->name('projects.status');
     Route::post('/projects/{project}/members', [ProjectMemberController::class, 'store'])->name('projects.members.store');
     Route::patch('/projects/{project}/members/{user}', [ProjectMemberController::class, 'update'])->name('projects.members.update');

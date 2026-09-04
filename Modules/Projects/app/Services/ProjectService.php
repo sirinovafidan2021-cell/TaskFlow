@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Modules\Activity\Services\ActivityRecorder;
+use Modules\Activity\Enums\ActivityEvent;
 use Modules\Projects\Data\CreateProjectData;
 use Modules\Projects\Data\UpdateProjectData;
 use Modules\Projects\Data\ChangeProjectStatusData;
@@ -39,7 +40,7 @@ class ProjectService
 
             $project = $this->projects->save($project);
             $this->members->addMember($project, $actor, ProjectMemberRole::Manager, actor: $actor);
-            $this->activity->record('project.created', $actor, $project, ['project_id' => $project->id, 'project_name' => $project->name, 'project_key' => $project->key, 'status' => $project->status->value]);
+            $this->activity->record(ActivityEvent::ProjectCreated, $actor, $project, ['project_id' => $project->id, 'project_name' => $project->name, 'project_key' => $project->key, 'status' => $project->status->value]);
 
             return $project;
         });
@@ -72,7 +73,7 @@ class ProjectService
             $project = $this->projects->save($project);
 
             if ($changed !== []) {
-                $this->activity->record('project.updated', $actor, $project, [
+                $this->activity->record(ActivityEvent::ProjectUpdated, $actor, $project, [
                     'project_id' => $project->id,
                     'changed' => $changed,
                     'old' => array_intersect_key($old, array_flip($changed)),
@@ -105,7 +106,7 @@ class ProjectService
             $lockedProject->status = $data->status;
 
             $project = $this->projects->save($lockedProject);
-            $this->activity->record('project.status_changed', $actor, $project, ['project_id' => $project->id, 'old_status' => $oldStatus->value, 'new_status' => $project->status->value]);
+            $this->activity->record(ActivityEvent::ProjectStatusChanged, $actor, $project, ['project_id' => $project->id, 'old_status' => $oldStatus->value, 'new_status' => $project->status->value]);
 
             return $project;
         });

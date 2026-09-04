@@ -25,6 +25,11 @@ final class ActivityDisplay
             'comment.deleted' => 'Comment deleted',
             'attachment.uploaded' => 'Attachment uploaded',
             'attachment.deleted' => 'Attachment deleted',
+            'task.reordered' => 'Task reordered', 'task.labels_updated' => 'Task labels updated',
+            'label.created' => 'Label created', 'label.updated' => 'Label updated', 'label.deleted' => 'Label deleted',
+            'watcher.added' => 'Watcher added', 'watcher.removed' => 'Watcher removed',
+            'user.created' => 'User created', 'user.updated' => 'User updated', 'user.suspended' => 'User suspended', 'user.reactivated' => 'User reactivated', 'user.password_reset' => 'Password reset', 'user.password_changed' => 'Password changed',
+            'api_token.issued' => 'API token issued', 'api_token.revoked' => 'API token revoked',
             default => 'Activity recorded',
         };
     }
@@ -46,11 +51,16 @@ final class ActivityDisplay
                 : null,
             'project.member_added' => isset($properties['member_name']) ? 'Added '.$properties['member_name'] : null,
             'project.member_removed' => isset($properties['member_name']) ? 'Removed '.$properties['member_name'] : null,
+            'project.member_role_updated' => isset($properties['member_name'], $properties['new_member_role']) ? $properties['member_name'].' is now '.$properties['new_member_role'] : null,
             'task.assigned' => self::assignmentSummary($properties),
             'task.status_changed' => isset($properties['old'], $properties['new'])
                 ? self::status($properties['old']).' → '.self::status($properties['new'])
                 : null,
             'attachment.uploaded', 'attachment.deleted' => $properties['filename'] ?? null,
+            'label.created', 'label.updated', 'label.deleted' => $properties['label_name'] ?? null,
+            'task.reordered' => isset($properties['rank']) ? 'Position '.$properties['rank'] : null,
+            'watcher.added' => isset($properties['watcher_id']) ? 'Watcher #'.$properties['watcher_id'].' added' : null,
+            'watcher.removed' => isset($properties['watcher_id']) ? 'Watcher #'.$properties['watcher_id'].' removed' : null,
             default => null,
         };
     }

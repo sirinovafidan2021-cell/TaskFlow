@@ -5,6 +5,7 @@ namespace Modules\Tasks\Repositories;
 use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Modules\Projects\Models\Project;
 use Modules\Tasks\Data\TaskFiltersData;
@@ -24,6 +25,11 @@ class EloquentTaskRepository implements TaskRepository
             ->withQueryString();
     }
 
+    public function visibleQueryFor(User $user): Builder
+    {
+        return $this->visibleTo(Task::query(), $user);
+    }
+
     private function baseQuery(TaskFiltersData $filters)
     {
         return Task::query()->with(['project', 'creator', 'assignee', 'labels', 'parent:id,project_id,number,title,type', 'subtasks:id,parent_id,project_id,number,title,type'])
@@ -33,8 +39,10 @@ class EloquentTaskRepository implements TaskRepository
             ->when($filters->priorities !== [], fn ($query) => $query->whereIn('priority', $filters->priorities))
             ->when($filters->projectId, fn ($query, $id) => $query->where('project_id', $id))
             ->when($filters->assigneeId, fn ($query, $id) => $query->where('assignee_id', $id))
+            ->when($filters->unassigned, fn ($query) => $query->whereNull('assignee_id'))
             ->when($filters->reporterId, fn ($query, $id) => $query->where('creator_id', $id))
-            ->when($filters->parentId, fn ($query, $id) => $query->where('parent_id', $id))
+            ->when($filters->parentId === 0, fn ($query) => $query->whereNull('parent_id'))
+            ->when($filters->parentId !== null && $filters->parentId > 0, fn ($query) => $query->where('parent_id', $filters->parentId))
             ->when($filters->dueBefore, fn ($query, $date) => $query->whereDate('due_at', '<=', $date))
             ->when($filters->dueAfter, fn ($query, $date) => $query->whereDate('due_at', '>=', $date))
             ->when($filters->overdue, fn ($query) => $query->whereDate('due_at','<',today())->whereNotIn('status',[TaskStatus::Done->value,TaskStatus::Cancelled->value]))
@@ -126,6 +134,22 @@ class EloquentTaskRepository implements TaskRepository
             ->whereIn('id', $this->visibleTo(Task::query(), $user)->whereNotNull('assignee_id')->select('assignee_id'))
             ->orderBy('name')
             ->get();
+    }
+
+    public function filterReportersFor(User $user): Collection
+    {
+        return User::query()
+            ->whereIn('id', $this->visibleTo(Task::query(), $user)->select('creator_id'))
+            ->orderBy('name')
+            ->get();
+    }
+
+    public function filterParentsFor(User $user): Collection
+    {
+        return $this->visibleTo(Task::query(), $user)
+            ->where('type', '!=', TaskType::Subtask->value)
+            ->orderBy('number')
+            ->get(['id', 'project_id', 'number', 'title', 'type']);
     }
 
     public function filterLabelsFor(User $user): Collection

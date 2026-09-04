@@ -29,6 +29,20 @@ class DashboardController
         return TaskResource::collection($this->dashboard->myTasks(request()->user()));
     }
 
+    public function reported(): AnonymousResourceCollection
+    {
+        $this->authorize('viewDashboard');
+
+        return TaskResource::collection($this->dashboard->reportedTasks(request()->user()));
+    }
+
+    public function watched(): AnonymousResourceCollection
+    {
+        $this->authorize('viewDashboard');
+
+        return TaskResource::collection($this->dashboard->watchedTasks(request()->user()));
+    }
+
     public function overdue(DashboardOverdueRequest $request): AnonymousResourceCollection
     {
         $this->authorize('viewDashboard');

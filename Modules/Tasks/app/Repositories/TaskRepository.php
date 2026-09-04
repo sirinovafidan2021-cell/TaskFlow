@@ -4,6 +4,7 @@ namespace Modules\Tasks\Repositories;
 
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Modules\Tasks\Data\TaskFiltersData;
 use Modules\Tasks\Models\Task;
@@ -12,6 +13,8 @@ use Modules\Projects\Models\Project;
 interface TaskRepository
 {
     public function paginateFor(User $user, TaskFiltersData $filters, int $perPage = 12): LengthAwarePaginator;
+
+    public function visibleQueryFor(User $user): Builder;
 
     public function save(Task $task): Task;
 
@@ -32,6 +35,10 @@ interface TaskRepository
     public function filterProjectsFor(User $user): Collection;
 
     public function filterUsersFor(User $user): Collection;
+
+    public function filterReportersFor(User $user): Collection;
+
+    public function filterParentsFor(User $user): Collection;
 
     public function filterLabelsFor(User $user): Collection;
 }

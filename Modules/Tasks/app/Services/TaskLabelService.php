@@ -7,6 +7,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use LogicException;
 use Modules\Activity\Services\ActivityRecorder;
+use Modules\Activity\Enums\ActivityEvent;
 use Modules\Tasks\Data\CreateTaskLabelData;
 use Modules\Tasks\Data\UpdateTaskLabelData;
 use Modules\Tasks\Enums\TaskStatus;
@@ -32,7 +33,7 @@ class TaskLabelService
             $slug = $this->slug($name);
             $this->ensureUnique($project, $name, $slug);
             $label = $this->labels->save(new TaskLabel(['project_id' => $project->id, 'name' => $name, 'slug' => $slug, 'color' => $data->color->value]));
-            $this->activity->record('label.created', $actor, $label, ['project_id' => $project->id, 'label_id' => $label->id, 'label_name' => $label->name]);
+            $this->activity->record(ActivityEvent::LabelCreated, $actor, $label, ['project_id' => $project->id, 'label_id' => $label->id, 'label_name' => $label->name]);
             return $label;
         });
     }
@@ -46,7 +47,7 @@ class TaskLabelService
             $this->ensureUnique($label->project, $name, $slug, $label);
             $label->fill(['name' => $name, 'slug' => $slug, 'color' => $data->color->value]);
             $label = $this->labels->save($label);
-            $this->activity->record('label.updated', $actor, $label, ['project_id' => $label->project_id, 'label_id' => $label->id, 'label_name' => $label->name]);
+            $this->activity->record(ActivityEvent::LabelUpdated, $actor, $label, ['project_id' => $label->project_id, 'label_id' => $label->id, 'label_name' => $label->name]);
             return $label;
         });
     }
@@ -63,7 +64,7 @@ class TaskLabelService
             if ($this->labels->countForProject($project, $ids) !== count($ids)) throw ValidationException::withMessages(['label_ids' => ['Every label must belong to the task project.']]);
             $before = $task->labels()->pluck('task_labels.id')->sort()->values()->all();
             $task->labels()->sync($ids);
-            if ($before !== $ids) $this->activity->record('task.labels_updated', $actor, $task, ['project_id' => $task->project_id, 'task_id' => $task->id, 'label_ids' => $ids]);
+            if ($before !== $ids) $this->activity->record(ActivityEvent::TaskLabelsUpdated, $actor, $task, ['project_id' => $task->project_id, 'task_id' => $task->id, 'label_ids' => $ids]);
             return $task;
         });
     }
@@ -74,7 +75,7 @@ class TaskLabelService
             $this->manage($label->project, $actor);
             $projectId = $label->project_id; $labelId = $label->id; $name = $label->name;
             $this->labels->delete($label);
-            $this->activity->record('label.deleted', $actor, $label, ['project_id' => $projectId, 'label_id' => $labelId, 'label_name' => $name]);
+            $this->activity->record(ActivityEvent::LabelDeleted, $actor, $label, ['project_id' => $projectId, 'label_id' => $labelId, 'label_name' => $name]);
         });
     }
 

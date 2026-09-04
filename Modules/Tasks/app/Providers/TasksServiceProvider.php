@@ -16,6 +16,10 @@ use Modules\Tasks\Repositories\TaskLabelRepository;
 use Modules\Tasks\Repositories\EloquentTaskLabelRepository;
 use Modules\Tasks\Repositories\TaskWatcherRepository;
 use Modules\Tasks\Repositories\EloquentTaskWatcherRepository;
+use Modules\Tasks\Livewire\TaskFilters;
+use Modules\Tasks\Livewire\TaskStatusSelector;
+use Modules\Tasks\Livewire\TaskCommentForm;
+use Livewire\Livewire;
 
 class TasksServiceProvider extends ServiceProvider
 {
@@ -30,6 +34,9 @@ class TasksServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Livewire::component('tasks.task-filters', TaskFilters::class);
+        Livewire::component('tasks.task-status-selector', TaskStatusSelector::class);
+        Livewire::component('tasks.task-comment-form', TaskCommentForm::class);
         $this->loadRoutesFrom(module_path('Tasks', 'routes/web.php'));
         \Illuminate\Support\Facades\Route::prefix('api/v1')->middleware(['api', 'auth:sanctum', 'active-user', 'throttle:taskflow-api'])->as('api.v1.')->group(module_path('Tasks', 'routes/api.php'));
         $this->loadViewsFrom(module_path('Tasks', 'resources/views'), 'tasks');

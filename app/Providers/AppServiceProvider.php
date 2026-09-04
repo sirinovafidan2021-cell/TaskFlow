@@ -9,6 +9,8 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\View;
+use App\Services\NotificationCenterService;
 use Illuminate\Support\Str;
 use Illuminate\Support\ServiceProvider;
 
@@ -40,5 +42,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('viewDashboard', fn (User $user): bool => $user->hasPermissionTo(PermissionName::DashboardView->value));
         Gate::define('manageUsers', fn (User $user): bool => $user->hasRole(UserRole::Admin->value)
             && $user->hasPermissionTo(PermissionName::UserRolesManage->value));
+        View::composer('components.workspace-header', fn ($view) => $view->with('unreadNotificationCount', auth()->check() ? app(NotificationCenterService::class)->unreadCount(auth()->user()) : 0));
     }
 }

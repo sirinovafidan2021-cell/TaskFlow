@@ -2,7 +2,7 @@
 
 ## Status
 
-This document defines the target contract. The inherited route file does not yet implement it. Endpoint completion is tracked by `IMPLEMENTATION_PLAN.md` and `TASKS.md`.
+This document defines the verified v1 contract. Runtime route/ability parity is enforced by contract tests; execution status is tracked by `IMPLEMENTATION_PLAN.md` and `TASKS.md`.
 
 Base path: `/api/v1`
 
@@ -108,7 +108,7 @@ Display number, reporter, initial status/rank, timestamps, and auto-watchers are
 
 Priority is required and is one of `low`, `medium`, `high`, or `urgent`; canonical ordering is `low < medium < high < urgent`. Every new work item starts in Backlog at a server-calculated position.
 
-Assignment body contains nullable `assignee_id`. A member may self-assign; assigning another user requires manager policy. Status body contains `status` and may contain `expected_updated_at` for optimistic conflict detection.
+Assignment body contains nullable `assignee_id`. A member may self-assign; assigning another user requires manager policy. Status body contains `status` and required server-issued `expected_version` for optimistic conflict detection.
 
 Rank body uses neighbor intent instead of trusting an arbitrary raw rank:
 
@@ -116,7 +116,7 @@ Rank body uses neighbor intent instead of trusting an arbitrary raw rank:
 {
   "before_task_id": 41,
   "after_task_id": 39,
-  "expected_updated_at": "2026-08-24T10:00:00.000000Z"
+  "expected_version": 3
 }
 ```
 

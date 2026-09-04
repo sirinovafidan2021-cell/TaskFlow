@@ -35,7 +35,7 @@ class ActivityController
 
         return ActivityResource::collection($this->activity->paginate(
             $request->user(),
-            [...$request->validated(), 'project' => $project->id],
+            [...$request->validated(), 'project_id' => $project->id],
             $request->integer('per_page', 20),
         ));
     }
@@ -47,7 +47,7 @@ class ActivityController
 
         return ActivityResource::collection($this->activity->paginate(
             $request->user(),
-            [...$request->validated(), 'task' => $task->id],
+            [...$request->validated(), 'task_id' => $task->id],
             $request->integer('per_page', 20),
         ));
     }

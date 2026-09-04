@@ -32,6 +32,13 @@ if (mobileNavigation && mobileNavigationToggle && mobileNavigationBackdrop) {
 }
 
 const confirmationModal = document.querySelector('[data-confirm-modal]');
+const previewModal = document.querySelector('[data-preview-modal]');
+let confirmationForm = null;
+let confirmationTrigger = null;
+
+const returnFocus = (element) => {
+    if (element instanceof HTMLElement && document.contains(element)) element.focus();
+};
 
 document.querySelectorAll('form[data-confirm]').forEach((form) => {
     form.addEventListener('submit', (event) => {
@@ -51,11 +58,92 @@ document.querySelectorAll('form[data-confirm]').forEach((form) => {
         }
 
         confirmationModal.querySelector('[data-confirm-message]').textContent = form.dataset.confirm;
+        confirmationForm = form;
+        confirmationTrigger = document.activeElement;
         confirmationModal.showModal();
-        confirmationModal.querySelector('[data-confirm-submit]').onclick = () => {
-            confirmationModal.close();
-            form.dataset.confirmed = 'true';
-            form.requestSubmit();
-        };
+        confirmationModal.querySelector('[data-confirm-cancel]')?.focus();
     });
 });
+
+confirmationModal?.querySelector('[data-confirm-submit]')?.addEventListener('click', () => {
+    const form = confirmationForm;
+    confirmationModal.close();
+    confirmationForm = null;
+    if (form) { form.dataset.confirmed = 'true'; form.requestSubmit(); }
+});
+confirmationModal?.addEventListener('close', () => {
+    if (confirmationForm) { confirmationForm = null; returnFocus(confirmationTrigger); }
+    confirmationTrigger = null;
+});
+
+const previewFrame = previewModal?.querySelector('[data-preview-frame]');
+let previewTrigger = null;
+document.querySelectorAll('[data-media-preview]').forEach((link) => {
+    link.addEventListener('click', (event) => {
+        if (!previewModal?.showModal || !previewFrame) return;
+        event.preventDefault();
+        previewTrigger = link;
+        previewFrame.src = link.href;
+        previewModal.querySelector('[data-preview-title]').textContent = link.dataset.previewName || 'Attachment preview';
+        previewModal.showModal();
+        previewModal.querySelector('[data-preview-close]')?.focus();
+    });
+});
+previewModal?.addEventListener('close', () => {
+    previewFrame?.removeAttribute('src');
+    returnFocus(previewTrigger);
+    previewTrigger = null;
+});
+previewModal?.querySelector('[data-preview-close]')?.addEventListener('click', () => previewModal.close());
+
+document.querySelectorAll('[data-character-counter]').forEach((field) => {
+    const counter = document.querySelector(`[data-character-count-for="${field.id}"]`);
+    if (!counter) return;
+    const update = () => { counter.textContent = `${field.value.length} / ${field.maxLength}`; };
+    field.addEventListener('input', update);
+    update();
+});
+
+document.querySelectorAll('[data-copy-text]').forEach((button) => {
+    button.addEventListener('click', async () => {
+        const value = button.dataset.copyText;
+        if (!value) return;
+        try { await navigator.clipboard.writeText(value); button.dataset.copyState = 'copied'; button.textContent = 'Copied'; }
+        catch { button.dataset.copyState = 'failed'; button.textContent = 'Copy failed'; }
+    });
+});
+
+document.querySelectorAll('[data-one-time-token]').forEach((container) => {
+    const remove = () => container.remove();
+    container.querySelector('[data-token-close]')?.addEventListener('click', remove);
+    container.addEventListener('close', remove);
+});
+
+const board = document.querySelector('[data-board]');
+if (board) {
+    const feedback = board.parentElement.querySelector('[data-board-feedback]');
+    let draggedCard = null;
+    const report = (message, isError = false) => {
+        if (!feedback) return;
+        feedback.hidden = false; feedback.textContent = message;
+        feedback.classList.toggle('text-rose-700', isError); feedback.classList.toggle('text-emerald-700', !isError);
+    };
+    const move = async (card, zone) => {
+        const targetStatus = zone.closest('[data-column]')?.dataset.column;
+        if (!card || !targetStatus || card.closest('[data-column]') === zone.closest('[data-column]')) return;
+        report('Moving task…');
+        try {
+            const response = await fetch(card.dataset.statusUrl, { method: 'PATCH', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '', Accept: 'application/json', 'Content-Type': 'application/json' }, body: JSON.stringify({status: targetStatus, expected_version: Number(card.dataset.version)}) });
+            if (!response.ok) { report('Move could not be completed. Refresh the board and try again.', true); return; }
+            window.location.reload();
+        } catch { report('Network error. The task was not moved; refresh and try again.', true); }
+    };
+    board.querySelectorAll('[data-board-card]').forEach((card) => {
+        card.addEventListener('dragstart', (event) => { draggedCard = card; event.dataTransfer.effectAllowed = 'move'; event.dataTransfer.setData('text/plain', card.dataset.task); });
+        card.addEventListener('dragend', () => { draggedCard = null; });
+    });
+    board.querySelectorAll('[data-cards]').forEach((zone) => {
+        zone.addEventListener('dragover', (event) => event.preventDefault());
+        zone.addEventListener('drop', (event) => { event.preventDefault(); move(draggedCard, zone); });
+    });
+}

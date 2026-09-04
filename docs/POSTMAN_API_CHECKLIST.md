@@ -2,11 +2,64 @@
 
 ## Status and safety
 
-This collection/checklist describes the **target v1 API** in `API_CONVENTIONS.md`. Execute it in TF-1003 after automated tests pass. Use an isolated test database and disposable accounts/tokens. Never save raw credentials or bearer tokens in committed files.
+This checklist reflects the verified runtime v1 contract in `API_CONVENTIONS.md`. Execute it in TF-1003 against an isolated test database with disposable accounts/tokens. Never save raw credentials or bearer tokens in committed files. An importable collection/OpenAPI file is not included because it has not been explicitly approved.
 
 Recommended variables: `base_url`, `admin_email`, `admin_password`, `admin_token`, `manager_token`, `member_token`, `outsider_token`, `project_id`, `other_project_id`, `task_id`, `subtask_id`, `label_id`, `media_id`, `comment_id`.
 
 For every request verify status, JSON envelope, content type, error shape, authorization, data scoping, and absence of stack/SQL/path/secret leakage.
+
+## Runtime route manifest
+
+The following matrix is locked to the runtime route inventory by automated contract tests. `—` means the endpoint has no Sanctum ability middleware; protected identity endpoints still require a valid token.
+
+| Method | Path | Ability | Expected result |
+| --- | --- | --- | --- |
+| POST | `/auth/token` | — | 201 token envelope; 422 invalid credentials/input |
+| GET | `/me` | — | 200 authenticated user resource |
+| DELETE | `/auth/token` | — | 204 current token revoked |
+| GET | `/projects` | projects:read | 200 paginated collection |
+| POST | `/projects` | projects:write | 201 project resource |
+| GET | `/projects/{project}` | projects:read | 200 scoped resource |
+| PUT | `/projects/{project}` | projects:write | 200 project resource |
+| PATCH | `/projects/{project}/status` | projects:write | 200 project resource; 409 state conflict |
+| GET | `/projects/{project}/members` | projects:read | 200 paginated collection |
+| POST | `/projects/{project}/members` | projects:write | 201 member resource |
+| PATCH | `/projects/{project}/members/{user}` | projects:write | 200 member resource |
+| DELETE | `/projects/{project}/members/{user}` | projects:write | 204; 409 open assignments |
+| GET | `/tasks` | tasks:read | 200 paginated collection |
+| POST | `/tasks` | tasks:write | 201 task resource |
+| GET | `/tasks/{task}` | tasks:read | 200 scoped resource |
+| PUT | `/tasks/{task}` | tasks:write | 200 task resource |
+| DELETE | `/tasks/{task}` | tasks:write | 204 |
+| PATCH | `/tasks/{task}/assignee` | tasks:write | 200 task resource |
+| PATCH | `/tasks/{task}/status` | tasks:write | 200 task resource; 409 stale version |
+| PATCH | `/tasks/{task}/rank` | tasks:write | 200 task resource; 409 stale version |
+| PUT | `/tasks/{task}/labels` | tasks:write | 200 task resource |
+| GET | `/projects/{project}/backlog` | tasks:read | 200 paginated collection |
+| GET | `/projects/{project}/board` | tasks:read | 200 fixed-column resource envelope |
+| GET | `/projects/{project}/labels` | tasks:read | 200 collection |
+| POST | `/projects/{project}/labels` | tasks:write | 201 label resource |
+| PATCH | `/projects/{project}/labels/{label}` | tasks:write | 200 label resource |
+| DELETE | `/projects/{project}/labels/{label}` | tasks:write | 204 |
+| GET | `/tasks/{task}/watchers` | tasks:read | 200 watcher collection |
+| POST | `/tasks/{task}/watchers` | tasks:write | 204 |
+| DELETE | `/tasks/{task}/watchers/{user}` | tasks:write | 204 |
+| GET | `/tasks/{task}/comments` | tasks:read | 200 collection |
+| POST | `/tasks/{task}/comments` | comments:write | 201 comment resource |
+| DELETE | `/tasks/{task}/comments/{comment}` | comments:write | 204 |
+| GET | `/tasks/{task}/media` | tasks:read | 200 paginated collection |
+| POST | `/tasks/{task}/media` | tasks:write | 201 attachment collection |
+| GET | `/tasks/{task}/media/{media}/preview` | tasks:read | 200 private stream |
+| GET | `/tasks/{task}/media/{media}/download` | tasks:read | 200 private stream |
+| DELETE | `/tasks/{task}/media/{media}` | tasks:write | 204 |
+| GET | `/activity` | activity:read | 200 paginated collection |
+| GET | `/projects/{project}/activity` | activity:read | 200 paginated collection |
+| GET | `/tasks/{task}/activity` | activity:read | 200 paginated collection |
+| GET | `/dashboard/summary` | dashboard:read | 200 summary resource |
+| GET | `/dashboard/my-tasks` | dashboard:read | 200 collection |
+| GET | `/dashboard/reported` | dashboard:read | 200 collection |
+| GET | `/dashboard/watched` | dashboard:read | 200 collection |
+| GET | `/dashboard/overdue` | dashboard:read | 200 paginated collection |
 
 ## Token bootstrap and identity
 
@@ -43,7 +96,7 @@ For every request verify status, JSON envelope, content type, error shape, autho
 - [ ] Project label CRUD validates scoped unique name/color and role permissions.
 - [ ] Task label attach/detach rejects foreign-project labels and duplicates.
 - [ ] Watch/unwatch is idempotent; watcher list is authorized and no multi-assignee behavior appears.
-- [ ] Comment create/update/delete enforces membership, ownership/role, active-project, length, and sanitized resource output.
+- [ ] Comment create/delete enforces membership, ownership/role, active-project, length, and sanitized resource output.
 - [ ] Related Activity and notification side effects occur once and only after successful state changes.
 
 ## Central Media
@@ -60,14 +113,14 @@ For every request verify status, JSON envelope, content type, error shape, autho
 
 - [ ] Activity list filters/paginates only accessible project/task records and exposes sanitized changes.
 - [ ] No notification-inbox API route exists in v1; notification recipient/side-effect behavior is proved by automated tests and the Web checklist.
-- [ ] Dashboard summary and assigned/reported/watched/overdue/recent queues match accessible source data, including `/dashboard/watched` for the authenticated user.
+- [ ] Dashboard summary and assigned/reported/watched/overdue queues match accessible source data, including `/dashboard/watched` for the authenticated user.
 - [ ] Counts cannot be manipulated to reveal an inaccessible project's existence.
 
 ## Validation and protocol matrix
 
 - [ ] JSON requests send `Accept: application/json`; unsupported media/type behavior is documented.
 - [ ] 200/201/204 usage is consistent; 204 has no body.
-- [ ] 400, 401, 403, 404, 409, 422, 429, and 500 cases follow the documented envelope and semantics.
+- [ ] 401, 403, 404, 409, 422, 429, and 500 cases follow the documented envelope and semantics.
 - [ ] Expected domain conflicts map narrowly to 409; unexpected programming/runtime failures remain 500 and are logged.
 - [ ] Validation errors use stable field keys, including nested/array input.
 - [ ] Pagination `data`/`meta` and links/cursors cannot carry unvalidated parameters.

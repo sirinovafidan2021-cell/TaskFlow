@@ -1591,3 +1591,177 @@ Final SQLite suite: `php artisan test --compact` PASS — 125 test, 680 assertio
 ## Yekun vəziyyət
 
 **COMPLETE / VERIFIED** — cross-task, outsider, read-only, XSS, validation/no-op notification, author/manager delete, Web/API contract və activity sanitization acceptance criteria executable testlərlə təsdiqləndi.
+
+# TF-700 — Shared layout and component system
+
+Guest və authenticated app layout-ları ayrıldı. Permission-aware/active navigation və shared header, flash, form-error, button, confirmation modal, status/priority badge və media action komponentləri tətbiq edildi. Task/project create-edit cütləri mövcud vahid form partial-larını saxlayır; board mobil grid, screen-reader label və visible focus qaydaları ilə yeniləndi. İstifadəsiz welcome view silindi.
+
+Focused UI/presentation suite: PASS — 17 test, 116 assertion. Final SQLite suite: `php artisan test --compact` PASS — 128 test, 702 assertion.
+
+`npm run build` host-da `npm` binarı olmadığı üçün icra edilə bilmədi; PHP/Blade feature verification tam keçdi.
+
+## Yekun vəziyyət
+
+**COMPLETE / VERIFIED** — shared component, permission/active navigation, responsive/focus və form reuse acceptance criteria executable feature yoxlamaları ilə təsdiqləndi.
+
+# TF-701 — Livewire TaskFilters
+
+Task siyahısı scoped `TaskQueryService` üzərindən Livewire komponentinə keçirildi; component repository/Eloquent inject etmir. Search debounce, çoxseçimli status/type/priority/label, project/assignee/reporter/parent, due/overdue, signed sort, URL state, pagination reset, loading, validation error və empty state əlavə edildi. Filter option-ları yalnız actor-un görə bildiyi project, user, parent və label-lardan qurulur; Web/API nəticə scope-u eynidir.
+
+Focused Livewire/filter suite: PASS — 5 test, 28 assertion. Final SQLite suite: `php artisan test --compact` PASS — 131 test, 721 assertion.
+
+## Yekun vəziyyət
+
+**COMPLETE / VERIFIED** — shared URL restore, visible-only options, pagination reset, tampered sort validation və Web/API parity acceptance criteria executable testlərlə təsdiqləndi.
+
+# TF-702 — Livewire TaskStatusSelector
+
+Task detail-də status formu Livewire selector ilə əvəz edildi. Selector service-in verdiyi transition-ları göstərir, task ID-ni locked saxlayır, policy və `TaskStatusService` ilə canonical optimistic-version DTO flow-u işlədilir. Loading, validation/conflict error və success vəziyyətləri göstərilir; form action/method JavaScript olmadan mövcud Web status endpoint-inə fallback edir.
+
+Focused selector/workflow suite: PASS — 12 test, 47 assertion. Final SQLite suite: `php artisan test --compact` PASS — 134 test, 737 assertion.
+
+## Yekun vəziyyət
+
+**COMPLETE / VERIFIED** — tampered, invalid, manager-only terminal reopen, read-only service guard və stale transition acceptance criteria canonical backend qaydaları ilə executable testlərdə keçdi.
+
+# TF-703 — Livewire TaskCommentForm
+
+Task detail comment formu Livewire komponentinə keçirildi. Locked task ID, view/comment policy, `TaskCommentService`, 5,000 simvol/plain-text validation, submit zamanı disabled control, input reset, success/error state və dərhal yenilənən comment list tətbiq edildi. POST action JavaScript olmadan mövcud Web endpoint-inə fallback edir.
+
+Focused comment suite: PASS — 9 test, 84 assertion. Final SQLite suite: `php artisan test --compact` PASS — 136 test, 757 assertion.
+
+## Yekun vəziyyət
+
+**COMPLETE / VERIFIED** — page refresh olmadan comment list görünüşü və tam bir comment/activity/watcher notification action, validation və double-submit guard executable testlərlə təsdiqləndi.
+
+# TF-704 — Livewire QuickTaskCreate
+
+Dashboard-a `QuickTaskCreate` əlavə edildi. Komponent dashboard project selection və fixed project context, project-scoped member/label/parent seçimləri, type/priority, assignee, label və Backlog yaradılmasını canonical `CreateTaskData`/`TaskService` flow-u ilə dəstəkləyir. Project dəyişəndə seçimlər yenilənir; foreign/read-only project, user, label və parent tampering server tərəfdə rədd edilir.
+
+Focused quick-create/create-flow suite: PASS — 17 test, 143 assertion. Final SQLite suite: `php artisan test --compact` PASS — 139 test, 805 assertion.
+
+## Yekun vəziyyət
+
+**COMPLETE / VERIFIED** — Web, API və Livewire create yollarının eyni task, activity və watcher nəticələri; scoped seçimlər, fixed context və read-only/tampering protection executable testlərlə təsdiqləndi.
+
+# TF-705 — Focused vanilla JavaScript
+
+Confirmation və private media preview dialogları focus return/Escape davranışı ilə tamamlandı. Task/comment form character counter-ları, issue-key copy, one-time token DOM cleanup və CSRF-li board drag/drop üçün görünən conflict/network error recovery əlavə edildi. Mövcud form action-ları JavaScript olmadan işlək saxlanıldı.
+
+Focused UI/board/media suite: PASS — 10 test, 69 assertion. Final SQLite suite: `php artisan test --compact` PASS — 141 test, 828 assertion.
+
+## Yekun vəziyyət
+
+**COMPLETE / VERIFIED** — accessible modal, copy, preview, counter, board fallback/recovery və token-in browser storage/console-da saxlanmaması executable yoxlamalarla təsdiqləndi.
+
+# TF-800 — Canonical Activity schema and scoped queries
+
+`ActivityEvent` canonical enum-u tətbiq edildi; bütün mutation recorder çağırışları enum-a keçirildi. Payload-lar `schema_version` ilə versiyalanır, nested sensitive key-lər (password, token, path, checksum, content və s.) recorder səviyyəsində silinir. SQLite/MySQL-portable filter option extraction, scoped global/project/task Web/API activity routes və user/admin/media/label/watcher/rank display-ləri tamamlandı.
+
+Focused activity/regression suite: PASS — 28 test, 167 assertion. Final SQLite suite: `php artisan test --compact` PASS — 143 test, 854 assertion.
+
+## Yekun vəziyyət
+
+**COMPLETE / VERIFIED** — canonical mutation event-ləri, filter tampering metadata isolation, safe resource payload və insanoxunaqlı scoped activity görünüşü executable testlərlə təsdiqləndi.
+
+# TF-801 — Notification center completion
+
+Notification center üçün recipient calculation `TaskWatcherNotificationService`-də mərkəzləşdirildi. Unread badge, pagination, bir/bütün notification-ları read etmək, safe event summary və yalnız hələ görünən task üçün authorized link əlavə edildi. Silinmiş və ya artıq görünməyən task notification-ları generic summary ilə link olmadan göstərilir.
+
+Focused notification/watcher suite: PASS — 17 test, 128 assertion. Final SQLite suite: `php artisan test --compact` PASS — 145 test, 873 assertion.
+
+## Yekun vəziyyət
+
+**COMPLETE / VERIFIED** — stale/deleted/inaccessible target metadata isolation, recipient, unread/read state və safe Web notification flow executable testlərlə təsdiqləndi.
+
+# TF-802 — Dashboard metrics and work queues
+
+Dashboard project/task list-ləri ilə eyni canonical visibility query-lərindən istifadə edir. My Assigned, Reported by Me, My Watched Work, overdue və completed-today queue-ları; project status və task type distribution-ları; Web empty state-ləri və summary/reported/watched/overdue API Resource-ları tamamlandı. API ability və dashboard permission yoxlamaları, eləcə də görünməyən project task-larının bütün queue/metric-lərdən çıxarılması testlə qorunur.
+
+Focused dashboard/regression suite: PASS — 12 test, 126 assertion. Final SQLite suite: `php artisan test --compact` PASS — 149 test, 913 assertion.
+
+## Yekun vəziyyət
+
+**COMPLETE / VERIFIED** — visibility, queue, timezone-day completion, Web/API parity və authorization matrix acceptance criteria executable testlərlə təsdiqləndi.
+
+# TF-900 — Resource, route, and ability matrix
+
+`/api/v1` route inventory-si canonical method/path/name/ability matrix ilə runtime testdə kilidləndi və bütün protected endpoint-lər üçün unauthenticated guard yoxlanıldı. Köhnə PATCH update alias-ları silindi; activity filter-ləri `*_id` contract-ına keçirildi; task filter unknown key və `assignee_id=unassigned` validation-u, board/backlog input validation-u, watcher Resource envelope-u və media nested parameter contract-ı tamamlandı. Optimistic write contract server-issued `expected_version` ilə dəqiqləşdirildi.
+
+Focused API contract suite: PASS — 40 test, 296 assertion. Final SQLite suite: `php artisan test --compact` PASS — 151 test, 964 assertion.
+
+## Yekun vəziyyət
+
+**COMPLETE / VERIFIED** — route inventory, auth/ability middleware, Resource envelope, nested 404 contract, validation və Web/API service parity acceptance criteria executable testlərlə təsdiqləndi.
+
+# TF-901 — API reference and manual collection
+
+`POSTMAN_API_CHECKLIST.md` verified runtime-dan çıxarılan 46 əməliyyatlıq method/path/ability/result manifest-i ilə yeniləndi. Köhnəlmiş comment update, dashboard recent API queue və 400 status maddələri çıxarıldı. Checklist route manifest-i runtime inventory ilə testdə müqayisə olunur və nümunələrdə bearer token və ya digər real secret pattern-i olmadığını yoxlayır. Importable collection/OpenAPI ayrıca explicit approval olmadığı üçün əlavə edilmədi.
+
+Focused API reference suite: PASS — 3 test, 49 assertion. Final SQLite suite: `php artisan test --compact` PASS — 152 test, 967 assertion.
+
+## Yekun vəziyyət
+
+**COMPLETE / VERIFIED** — manual API reference-in method, path, ability və expected result-ləri runtime contract ilə executable şəkildə eynidir; committed nümunələr secret-free-dir.
+
+# TF-1000 — Risk əsaslı Pest suite closure
+
+Architecture suite default PHPUnit discovery-yə əlavə edildi. Controller, Livewire, request/DTO input, Task–Media sərhədi, API resource/route ownership və skipped test guard-ları executable şəkildə qorunur. Traceability matrix-də tamamlanmış product, API, təhlükəsizlik və audit sətirləri verified edildi; TF-103 və sonrakı release/browser gate-ləri dürüst pending saxlanıldı.
+
+Focused Architecture suite: PASS — 6 test, 22 assertion. Final SQLite suite: `php artisan test --compact` PASS — 158 test, 989 assertion. MySQL compatibility run-u explicit approval olmadığı üçün icra edilmədi.
+
+## Yekun vəziyyət
+
+**COMPLETE / VERIFIED** — bütün Critical/High risk-lər executable test coverage ilə bağlandı, default suite architecture testlərini də discover edir və flake/skip yoxdur.
+
+# TF-701 — Livewire TaskFilters re-verification
+
+Mövcud scoped filter komponenti canonical URL state, pagination reset, debounce/loading/empty/error görünüşü və QueryService-only sərhədi ilə yenidən yoxlanıldı; dəyişiklik tələb olunmadı.
+
+Focused suite: PASS — 5 test, 33 assertion. Final SQLite suite: `php artisan test --compact` PASS — 158 test, 989 assertion.
+
+## Yekun vəziyyət
+
+**COMPLETE / VERIFIED** — Web/API parity və görünən option scope-u executable şəkildə təsdiqləndi.
+
+# TF-1001 — Playwright E2E
+
+Locked Playwright, isolated SQLite fixture və Laravel browser server setup əlavə edildi. Login/logout, suspended account, project/task və URL filter browser journey-ləri desktop və mobile Chromium-da yoxlandı; trace/video söndürülüb, yalnız failure screenshot-u saxlanır.
+
+Focused E2E: `npm run e2e` PASS — 8 test, 6.9s.
+
+## Yekun vəziyyət
+
+**COMPLETE / VERIFIED** — critical browser coverage executable şəkildə keçir.
+
+# TF-1002 — Quality gate
+
+Composer validation, Vite build, Playwright və SQLite regression keçdi. Pint yalnız mövcud formatting drift-i göstərdi; Critical/High risk yoxdur.
+
+# TF-1003 — Local acceptance
+
+Disposable SQLite fixture ilə desktop/mobile browser və API contract acceptance icra edildi. `npm run e2e` 8 testlə, tam SQLite regression isə 158 testlə keçdi; real secret və production data istifadə olunmadı.
+
+# TF-1004 — Final handoff
+
+Canonical sənədlər, traceability və dated release handoff verified evidence ilə uzlaşdırıldı. Product sərhədləri, direct dependency debt, MySQL optional gate və deferred roadmap açıq qeyd edildi.
+
+**COMPLETE / VERIFIED** — SQLite 158/989, Playwright 8 journey, Composer validation və Vite build evidence-i ilə release handoff tamamlandı.
+
+# TF-101 — qa regression decomposition
+
+Legacy 35-block `qa` monoliti mövcud Auth/Admin/Projects/Tasks/Media/Activity/Dashboard/API test sərhədləri ilə uzlaşdırıldı. Faydalı Product Brief davranışları 158-testlik standart suite-də qorunur; köhnə implementation-detail assertion-lar saxlanmadı və `qa/` silindi.
+
+**COMPLETE / VERIFIED** — full SQLite: PASS, 158 test / 989 assertion.
+
+# TF-103 — Final architecture guards
+
+Controller, Livewire, Media, API route/resource, exception və request sərhədləri yenidən yoxlanıldı. Module repository binding smoke və documented direct dependency allowlist guard-ları əlavə edildi.
+
+**COMPLETE / VERIFIED** — Architecture PASS: 8 test / 31 assertion; full SQLite PASS: 160 test / 998 assertion.
+
+# Final project audit — 2026-09-04
+
+Canonical task statusları, traceability, release handoff və test konfiqurasiyası uzlaşdırıldı. Architecture 8/31, SQLite 160/998, Playwright 8 journey, Composer validation və Vite build keçdi. Aktiv, blocked və ya deferred canonical task qalmadı.
+
+**RELEASE READY** — TaskFlow handoff üçün hazırdır.

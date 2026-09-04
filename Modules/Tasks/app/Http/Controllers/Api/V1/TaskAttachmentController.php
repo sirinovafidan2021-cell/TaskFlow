@@ -52,27 +52,27 @@ class TaskAttachmentController
             ->setStatusCode(201);
     }
 
-    public function download(Task $task, TaskAttachment $attachment)
+    public function download(Task $task, TaskAttachment $media)
     {
-        abort_unless($attachment->task_id === $task->id, 404);
+        abort_unless($media->task_id === $task->id, 404);
         $this->authorize('view', $task);
 
-        return $this->attachmentService->download($attachment);
+        return $this->attachmentService->download($media);
     }
 
-    public function preview(Task $task, TaskAttachment $attachment)
+    public function preview(Task $task, TaskAttachment $media)
     {
-        abort_unless($attachment->task_id === $task->id, 404);
+        abort_unless($media->task_id === $task->id, 404);
         $this->authorize('view', $task);
 
-        return $this->attachmentService->preview($attachment);
+        return $this->attachmentService->preview($media);
     }
 
-    public function destroy(Task $task, TaskAttachment $attachment): JsonResponse
+    public function destroy(Task $task, TaskAttachment $media): JsonResponse
     {
-        abort_unless($attachment->task_id === $task->id, 404);
-        $this->authorize('deleteAttachment', [$task, $attachment]);
-        $this->attachmentService->delete($attachment->load('task'), request()->user());
+        abort_unless($media->task_id === $task->id, 404);
+        $this->authorize('deleteAttachment', [$task, $media]);
+        $this->attachmentService->delete($media->load('task'), request()->user());
 
         return response()->json(null, 204);
     }

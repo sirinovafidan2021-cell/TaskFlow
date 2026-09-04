@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Modules\Activity\Services\ActivityRecorder;
+use Modules\Activity\Enums\ActivityEvent;
 use Modules\Media\Models\Media;
 use Modules\Media\Services\MediaStorageService;
 use Modules\Tasks\Models\Task;
@@ -49,7 +50,7 @@ class TaskAttachmentService
                         'mime_type' => $media->mime_type,
                         'size' => $media->size,
                     ]));
-                    $this->activity->record('attachment.uploaded', $actor, $attachment, [
+                    $this->activity->record(ActivityEvent::AttachmentUploaded, $actor, $attachment, [
                         'project_id' => $task->project_id,
                         'task_id' => $task->id,
                         'attachment_id' => $attachment->id,
@@ -92,7 +93,7 @@ class TaskAttachmentService
         DB::transaction(function () use ($attachment, $actor, $media) {
             $properties = ['project_id' => $attachment->task->project_id, 'task_id' => $attachment->task_id, 'attachment_id' => $attachment->id, 'media_uuid' => $media->uuid, 'filename' => $media->original_name];
             $this->attachments->delete($attachment);
-            $this->activity->record('attachment.deleted', $actor, $attachment, $properties);
+            $this->activity->record(ActivityEvent::AttachmentDeleted, $actor, $attachment, $properties);
         });
         $this->media->delete($media);
     }

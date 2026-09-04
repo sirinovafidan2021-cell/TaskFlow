@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Data\CreatePersonalAccessTokenData;
 use App\Models\User;
+use Modules\Activity\Enums\ActivityEvent;
 use App\Repositories\UserRepository;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\NewAccessToken;
@@ -22,7 +23,7 @@ class AuthenticationService
         }
 
         $token = $user->createToken($data->deviceName, $data->abilityValues());
-        $this->audit->record($user, $user, 'api_token.issued', [
+        $this->audit->record($user, $user, ActivityEvent::ApiTokenIssued, [
             'user_id' => $user->id,
             'device_name' => $data->deviceName,
             'abilities' => $data->abilityValues(),
@@ -37,7 +38,7 @@ class AuthenticationService
 
         if ($token && $token->tokenable_type === $user::class && $token->tokenable_id === $user->id) {
             $token->delete();
-            $this->audit->record($user, $user, 'api_token.revoked', ['user_id' => $user->id]);
+            $this->audit->record($user, $user, ActivityEvent::ApiTokenRevoked, ['user_id' => $user->id]);
         }
     }
 }

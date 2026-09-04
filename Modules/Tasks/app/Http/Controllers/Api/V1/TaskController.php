@@ -116,7 +116,6 @@ class TaskController
     public function changeStatus(ChangeTaskStatusRequest $request, Task $task): TaskResource
     {
         $this->authorize('changeStatus', $task);
-
         $task = $this->statuses->change(
             $task->load('project'),
             ChangeTaskStatusData::fromArray($request->validated()),

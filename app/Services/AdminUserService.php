@@ -8,6 +8,7 @@ use App\Data\ResetAdminUserPasswordData;
 use App\Data\UpdateAdminUserData;
 use App\Enums\AccountStatus;
 use App\Enums\UserRole;
+use Modules\Activity\Enums\ActivityEvent;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -52,7 +53,7 @@ class AdminUserService
             $user->forceFill(['status' => AccountStatus::Active])->save();
 
             $user->syncRoles([$data->role->value]);
-            $this->audit->record($actor ?: $user, $user, 'user.created', [
+            $this->audit->record($actor ?: $user, $user, ActivityEvent::UserCreated, [
                 'user_id' => $user->id,
                 'role' => $data->role->value,
                 'status' => AccountStatus::Active->value,
@@ -74,7 +75,7 @@ class AdminUserService
             ]);
             $user->save();
             $user->syncRoles([$data->role->value]);
-            $this->audit->record($actor ?: $user, $user, 'user.updated', [
+            $this->audit->record($actor ?: $user, $user, ActivityEvent::UserUpdated, [
                 'user_id' => $user->id,
                 'old_role' => $oldRole,
                 'new_role' => $data->role->value,
@@ -98,7 +99,7 @@ class AdminUserService
             $this->invalidateSessions($user);
             $user->forceFill(['status' => AccountStatus::Suspended])->save();
 
-            $this->audit->record($actor, $user, 'user.suspended', ['user_id' => $user->id]);
+            $this->audit->record($actor, $user, ActivityEvent::UserSuspended, ['user_id' => $user->id]);
 
             return $user->fresh('roles');
         });
@@ -108,7 +109,7 @@ class AdminUserService
     {
         return DB::transaction(function () use ($user, $actor): User {
             $user->forceFill(['status' => AccountStatus::Active])->save();
-            $this->audit->record($actor, $user, 'user.reactivated', ['user_id' => $user->id]);
+            $this->audit->record($actor, $user, ActivityEvent::UserReactivated, ['user_id' => $user->id]);
 
             return $user->fresh('roles');
         });
@@ -120,7 +121,7 @@ class AdminUserService
             $user->forceFill(['password' => Hash::make($data->password), 'remember_token' => Str::random(60)])->save();
             $user->tokens()->delete();
             $this->invalidateSessions($user);
-            $this->audit->record($actor, $user, 'user.password_reset', ['user_id' => $user->id]);
+            $this->audit->record($actor, $user, ActivityEvent::UserPasswordReset, ['user_id' => $user->id]);
         });
     }
 
@@ -130,7 +131,7 @@ class AdminUserService
             $user->forceFill(['password' => Hash::make($data->password), 'remember_token' => Str::random(60)])->save();
             $user->tokens()->delete();
             $this->invalidateSessions($user, $currentSessionId);
-            $this->audit->record($user, $user, 'user.password_changed', ['user_id' => $user->id]);
+            $this->audit->record($user, $user, ActivityEvent::UserPasswordChanged, ['user_id' => $user->id]);
         });
     }
 

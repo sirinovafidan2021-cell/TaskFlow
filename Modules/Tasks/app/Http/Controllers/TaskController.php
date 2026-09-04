@@ -44,7 +44,7 @@ class TaskController
     {
         $this->authorize('viewAny', Task::class);
 
-        return view('tasks::index', ['tasks' => $this->tasks->paginateFor($request->user(), TaskFiltersData::fromArray($request->all())), 'statuses' => TaskStatus::cases(), 'types' => TaskType::cases(), 'priorities' => TaskPriority::cases(), 'projects' => $this->tasks->filterProjectsFor($request->user()), 'users' => $this->tasks->filterUsersFor($request->user()), 'labels' => $this->tasks->filterLabelsFor($request->user())]);
+        return view('tasks::index');
     }
 
     public function create(Project $project): View
@@ -67,7 +67,7 @@ class TaskController
         $this->authorize('view', $task);
         $canViewActivity = request()->user()->can('viewAny', Activity::class);
 
-        return view('tasks::show', ['task' => $task->load(['project', 'creator', 'assignee', 'labels', 'parent', 'subtasks', 'comments.user', 'attachments.uploader', 'attachments.media']), 'memberships' => $this->members->memberships($task->project), 'nextStatuses' => $this->statuses->availableStatuses($task, request()->user()), 'activities' => $canViewActivity ? $this->activity->recentForTask($task) : null, 'canViewActivity' => $canViewActivity]);
+        return view('tasks::show', ['task' => $task->load(['project', 'creator', 'assignee', 'labels', 'parent', 'subtasks', 'comments.user', 'attachments.uploader', 'attachments.media']), 'memberships' => $this->members->memberships($task->project), 'activities' => $canViewActivity ? $this->activity->recentForTask($task) : null, 'canViewActivity' => $canViewActivity]);
     }
 
     public function edit(Task $task): View

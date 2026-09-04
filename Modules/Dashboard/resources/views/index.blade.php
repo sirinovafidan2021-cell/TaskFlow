@@ -13,6 +13,10 @@
         <a href="{{ route('tasks.index') }}" class="inline-flex shrink-0 items-center justify-center rounded-xl bg-white px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-100">View tasks</a>
     </section>
 
+    <section class="mt-7">
+        <livewire:dashboard.quick-task-create />
+    </section>
+
     @php
         $metrics = [
             ['label' => 'Active projects', 'value' => $activeProjects, 'tone' => 'text-slate-950'],
@@ -39,7 +43,7 @@
         <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
             <div class="flex items-center justify-between gap-4">
                 <div>
-                    <h3 class="text-lg font-semibold text-slate-950">My Tasks</h3>
+                    <h3 class="text-lg font-semibold text-slate-950">My Assigned Work</h3>
                     <p class="mt-1 text-sm text-slate-500">The next assigned work in your queue.</p>
                 </div>
                 <a href="{{ route('tasks.index') }}" class="text-sm font-semibold text-indigo-700 hover:text-indigo-600">All tasks</a>
@@ -61,7 +65,7 @@
                     </a>
                 @empty
                     <div class="rounded-xl border border-dashed border-slate-300 px-5 py-10 text-center">
-                        <p class="font-semibold text-slate-900">No assigned tasks right now.</p>
+                        <p class="font-semibold text-slate-900">No assigned work right now.</p>
                         <p class="mt-2 text-sm leading-6 text-slate-500">When work is assigned to you, it will appear here.</p>
                     </div>
                 @endforelse
@@ -95,6 +99,34 @@
         </article>
     </section>
 
+    @php
+        $queues = [
+            'Reported by Me' => ['tasks' => $reportedTasks, 'empty' => 'You have not reported any visible work yet.'],
+            'My Watched Work' => ['tasks' => $watchedTasks, 'empty' => 'Watch a task to keep it in this personal queue.'],
+            'Overdue Work' => ['tasks' => $overdueTasks, 'empty' => 'No visible work is overdue.'],
+            'Completed Today' => ['tasks' => $completedTodayTasks, 'empty' => 'No visible work was completed today.'],
+        ];
+    @endphp
+
+    <section class="mt-7 grid gap-6 lg:grid-cols-2">
+        @foreach ($queues as $title => $queue)
+            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <h3 class="text-lg font-semibold text-slate-950">{{ $title }}</h3>
+                <div class="mt-4 space-y-3">
+                    @forelse ($queue['tasks'] as $task)
+                        <a href="{{ route('tasks.show', $task) }}" class="block rounded-xl border border-slate-200 p-3 transition hover:border-indigo-200 hover:bg-indigo-50/40">
+                            <p class="text-xs font-semibold text-indigo-700">{{ $task->display_key }}</p>
+                            <p class="mt-1 truncate font-semibold text-slate-950">{{ $task->title }}</p>
+                            <p class="mt-1 text-sm text-slate-500">{{ $task->project->name }} · Due {{ $task->due_at?->format('M j, Y') ?? 'not set' }}</p>
+                        </a>
+                    @empty
+                        <p class="rounded-xl border border-dashed border-slate-300 px-4 py-7 text-center text-sm text-slate-500">{{ $queue['empty'] }}</p>
+                    @endforelse
+                </div>
+            </article>
+        @endforeach
+    </section>
+
     <section class="mt-7 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
         <div class="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
             <div>
@@ -110,5 +142,28 @@
                 </div>
             @endforeach
         </div>
+    </section>
+
+    <section class="mt-7 grid gap-6 lg:grid-cols-2">
+        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h3 class="text-lg font-semibold text-slate-950">Projects by status</h3>
+            <div class="mt-4 space-y-2 text-sm">
+                @forelse ($projectStatusDistribution as $status => $count)
+                    <div class="flex justify-between rounded-lg bg-slate-50 px-3 py-2"><span class="capitalize text-slate-600">{{ str_replace('_', ' ', $status) }}</span><span class="font-semibold text-slate-950">{{ $count }}</span></div>
+                @empty
+                    <p class="text-slate-500">No visible projects.</p>
+                @endforelse
+            </div>
+        </article>
+        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h3 class="text-lg font-semibold text-slate-950">Work by type</h3>
+            <div class="mt-4 space-y-2 text-sm">
+                @forelse ($taskTypeDistribution as $type => $count)
+                    <div class="flex justify-between rounded-lg bg-slate-50 px-3 py-2"><span class="capitalize text-slate-600">{{ $type }}</span><span class="font-semibold text-slate-950">{{ $count }}</span></div>
+                @empty
+                    <p class="text-slate-500">No visible work items.</p>
+                @endforelse
+            </div>
+        </article>
     </section>
 @endsection

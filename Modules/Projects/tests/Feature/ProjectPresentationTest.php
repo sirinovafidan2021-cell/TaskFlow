@@ -78,7 +78,7 @@ it('returns scoped project resources with counts and exact create/update/status 
         ->assertJsonPath('data.member_count', 1)
         ->assertJsonPath('data.task_count', 0);
 
-    $this->patchJson(route('api.v1.projects.update', $project), [
+    $this->putJson(route('api.v1.projects.update', $project), [
         'name' => 'Presented project', 'key' => $project->key, 'description' => 'Updated through API.',
     ])->assertOk()
         ->assertJsonPath('data.name', 'Presented project');

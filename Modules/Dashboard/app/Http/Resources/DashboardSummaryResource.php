@@ -18,6 +18,8 @@ class DashboardSummaryResource extends JsonResource
             'review' => $this['review'],
             'overdue' => $this['overdue'],
             'completed_today' => $this['completedToday'],
+            'project_status_distribution' => $this['projectStatusDistribution'],
+            'task_type_distribution' => $this['taskTypeDistribution'],
         ];
     }
 }

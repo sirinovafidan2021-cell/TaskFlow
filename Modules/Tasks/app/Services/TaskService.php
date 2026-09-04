@@ -9,6 +9,7 @@ use DateTimeInterface;
 use Illuminate\Support\Facades\DB;
 use LogicException;
 use Modules\Activity\Services\ActivityRecorder;
+use Modules\Activity\Enums\ActivityEvent;
 use Modules\Projects\Enums\ProjectStatus;
 use Modules\Projects\Models\Project;
 use Modules\Projects\Services\ProjectService;
@@ -58,7 +59,7 @@ class TaskService
             if ($data->labelIds !== []) { $this->labels->sync($task, $data->labelIds, $actor); }
             $this->watchers->ensureWatching($task, $actor);
             if ($data->assigneeId && $data->assigneeId !== $actor->id) $this->watchers->ensureWatching($task, $assignee);
-            $this->activity->record('task.created', $actor, $task, ['project_id' => $project->id, 'task_id' => $task->id, 'task_number' => $task->number, 'task_title' => $task->title]);
+            $this->activity->record(ActivityEvent::TaskCreated, $actor, $task, ['project_id' => $project->id, 'task_id' => $task->id, 'task_number' => $task->number, 'task_title' => $task->title]);
 
             return $task;
         });
@@ -81,7 +82,7 @@ class TaskService
             if ($changed !== []) {
                 $task->version++;
                 $task = $this->tasks->save($task);
-                $this->activity->record('task.updated', $actor, $task, ['project_id' => $task->project_id, 'task_id' => $task->id, 'changed' => $changed, 'old' => $old, 'new' => $new]);
+                $this->activity->record(ActivityEvent::TaskUpdated, $actor, $task, ['project_id' => $task->project_id, 'task_id' => $task->id, 'changed' => $changed, 'old' => $old, 'new' => $new]);
             }
 
             if ($changed === []) {
@@ -108,7 +109,7 @@ class TaskService
                 throw new LogicException('The actor cannot delete this task.');
             }
             $this->tasks->delete($task);
-            $this->activity->record('task.deleted', $actor, $task, ['project_id' => $task->project_id, 'task_id' => $task->id, 'task_number' => $task->number, 'task_title' => $task->title]);
+            $this->activity->record(ActivityEvent::TaskDeleted, $actor, $task, ['project_id' => $task->project_id, 'task_id' => $task->id, 'task_number' => $task->number, 'task_title' => $task->title]);
         });
     }
 
